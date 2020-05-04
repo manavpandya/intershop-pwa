@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
 import { concatMap, mapTo } from 'rxjs/operators';
 
 import { BasketService } from 'ish-core/services/basket/basket.service';
@@ -10,7 +9,7 @@ import * as basketActions from './basket.actions';
 
 @Injectable()
 export class BasketPromotionCodeEffects {
-  constructor(private actions$: Actions, private store: Store, private basketService: BasketService) {}
+  constructor(private actions$: Actions, private basketService: BasketService) {}
 
   /**
    * Add promotion code to the current basket.
@@ -20,10 +19,12 @@ export class BasketPromotionCodeEffects {
     ofType<basketActions.AddPromotionCodeToBasket>(basketActions.BasketActionTypes.AddPromotionCodeToBasket),
     mapToPayloadProperty('code'),
     concatMap(code =>
-      this.basketService.addPromotionCodeToBasket(code).pipe(
-        mapTo(new basketActions.AddPromotionCodeToBasketSuccess()),
-        mapErrorToAction(basketActions.AddPromotionCodeToBasketFail)
-      )
+      this.basketService
+        .addPromotionCodeToBasket(code)
+        .pipe(
+          mapTo(new basketActions.AddPromotionCodeToBasketSuccess()),
+          mapErrorToAction(basketActions.AddPromotionCodeToBasketFail)
+        )
     )
   );
 
@@ -44,10 +45,12 @@ export class BasketPromotionCodeEffects {
     ofType<basketActions.RemovePromotionCodeFromBasket>(basketActions.BasketActionTypes.RemovePromotionCodeFromBasket),
     mapToPayloadProperty('code'),
     concatMap(code =>
-      this.basketService.removePromotionCodeFromBasket(code).pipe(
-        mapTo(new basketActions.RemovePromotionCodeFromBasketSuccess()),
-        mapErrorToAction(basketActions.RemovePromotionCodeFromBasketFail)
-      )
+      this.basketService
+        .removePromotionCodeFromBasket(code)
+        .pipe(
+          mapTo(new basketActions.RemovePromotionCodeFromBasketSuccess()),
+          mapErrorToAction(basketActions.RemovePromotionCodeFromBasketFail)
+        )
     )
   );
 
