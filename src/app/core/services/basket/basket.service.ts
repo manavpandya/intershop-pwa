@@ -80,7 +80,10 @@ export class BasketService {
         select(getCurrentBasket),
         whenFalsy()
       )
-      .subscribe(() => this.buildBasketStream());
+      .subscribe(() => {
+        console.log('getCurrentBasket falsy, rebuilding stream...');
+        this.buildBasketStream();
+      });
     this.buildBasketStream();
   }
 
@@ -182,13 +185,14 @@ export class BasketService {
     if (!authToken) {
       return throwError('mergeBasket() called without authToken');
     }
-
+    console.log('sourceBasketId: ', sourceBasketId);
+    this.basketId$.pipe(take(1)).subscribe(cb => console.log('currentBasketId: ', cb));
     const params = new HttpParams().set('include', this.allTargetBasketIncludes.join());
-    return this.basketId$.pipe(
-      concatMap(basketId =>
+    return this.createOrLoadCurrentBasket().pipe(
+      concatMap(basket =>
         this.apiService
           .post<BasketMergeData>(
-            `baskets/${basketId}/merges`,
+            `baskets/${basket.id}/merges`,
             { sourceBasket: sourceBasketId, sourceAuthenticationToken: authToken },
             {
               headers: this.basketHeaders,
@@ -425,6 +429,7 @@ export class BasketService {
    * selects or creates editable quote request
    */
   private buildBasketStream() {
+    console.log('building Basket Stream');
     this.basketId$ = this.store.pipe(select(getCurrentBasketId)).pipe(
       take(1),
       concatMap(basketId =>
@@ -439,6 +444,7 @@ export class BasketService {
    * gets or creates the basket of the current user
    */
   private createOrLoadCurrentBasket(): Observable<Basket> {
+    console.log('createOrLoadCurrentBasket');
     return this.getBaskets().pipe(
       concatMap(baskets => (baskets && baskets.length ? this.loadBasket() : this.createBasket()))
     );
