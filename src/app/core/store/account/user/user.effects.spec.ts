@@ -22,7 +22,7 @@ import { PersonalizationService } from 'ish-core/services/personalization/person
 import { UserService } from 'ish-core/services/user/user.service';
 import { AccountStoreModule } from 'ish-core/store/account/account-store.module';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
-import { SuccessMessage } from 'ish-core/store/core/messages';
+import { DisplaySuccessMessage } from 'ish-core/store/core/messages';
 
 import {
   CreateUser,
@@ -358,7 +358,7 @@ describe('User Effects', () => {
       // tslint:disable-next-line:ban-types
 
       const action = new UpdateUserSuccess({ user: {} as User, successMessage: 'success' });
-      const completion = new SuccessMessage({ message: 'success' });
+      const completion = new DisplaySuccessMessage({ message: 'success' });
 
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-b-b-b', { b: completion });
@@ -636,7 +636,7 @@ describe('User Effects', () => {
       const action = new DeleteUserPaymentInstrument({ id: 'paymentInstrumentId' });
       const completion1 = new DeleteUserPaymentInstrumentSuccess();
       const completion2 = new LoadUserPaymentMethods();
-      const completion3 = new SuccessMessage({
+      const completion3 = new DisplaySuccessMessage({
         message: 'account.payment.payment_deleted.message',
       });
 

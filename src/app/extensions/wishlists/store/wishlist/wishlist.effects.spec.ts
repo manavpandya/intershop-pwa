@@ -14,7 +14,7 @@ import { HttpError } from 'ish-core/models/http-error/http-error.model';
 import { AccountStoreModule } from 'ish-core/store/account/account-store.module';
 import { LoginUserSuccess } from 'ish-core/store/account/user';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
-import { SuccessMessage } from 'ish-core/store/core/messages';
+import { DisplaySuccessMessage } from 'ish-core/store/core/messages';
 
 import { Wishlist } from '../../models/wishlist/wishlist.model';
 import { WishlistService } from '../../services/wishlist/wishlist.service';
@@ -173,7 +173,7 @@ describe('Wishlist Effects', () => {
       const completion1 = new CreateWishlistSuccess({
         wishlist: wishlistData[0],
       });
-      const completion2 = new SuccessMessage({
+      const completion2 = new DisplaySuccessMessage({
         message: 'account.wishlists.new_wishlist.confirmation',
         messageParams: { 0: createWishlistData.title },
       });
@@ -232,7 +232,7 @@ describe('Wishlist Effects', () => {
     it('should map to actions of type DeleteWishlistSuccess', () => {
       const action = new DeleteWishlist({ wishlistId: id });
       const completion1 = new DeleteWishlistSuccess({ wishlistId: id });
-      const completion2 = new SuccessMessage({
+      const completion2 = new DisplaySuccessMessage({
         message: 'account.wishlists.delete_wishlist.confirmation',
         messageParams: { 0: wishlists[0].title },
       });
@@ -283,7 +283,7 @@ describe('Wishlist Effects', () => {
     it('should map to actions of type UpdateWishlistSuccess', () => {
       const action = new UpdateWishlist({ wishlist: wishlistDetailData[0] });
       const completion1 = new UpdateWishlistSuccess({ wishlist: wishlistDetailData[0] });
-      const completion2 = new SuccessMessage({
+      const completion2 = new DisplaySuccessMessage({
         message: 'account.wishlists.edit_wishlist.confirmation',
         messageParams: { 0: wishlistDetailData[0].title },
       });

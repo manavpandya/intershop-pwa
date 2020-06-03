@@ -22,7 +22,7 @@ import { AccountStoreModule } from 'ish-core/store/account/account-store.module'
 import { LoadBasketSuccess } from 'ish-core/store/account/basket';
 import { LoadCompanyUserSuccess, LoginUserSuccess } from 'ish-core/store/account/user';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
-import { SuccessMessage } from 'ish-core/store/core/messages';
+import { DisplaySuccessMessage } from 'ish-core/store/core/messages';
 import { LoadProductIfNotLoaded } from 'ish-core/store/shopping/products';
 import { ShoppingStoreModule } from 'ish-core/store/shopping/shopping-store.module';
 
@@ -279,7 +279,7 @@ describe('Quote Request Effects', () => {
       const id = 'QRID';
       const action = new DeleteQuoteRequest({ id });
       const completion = new DeleteQuoteRequestSuccess({ id });
-      const completion2 = new SuccessMessage({
+      const completion2 = new DisplaySuccessMessage({
         message: 'quote.delete.message',
       });
       actions$ = hot('-a----a----a----|', { a: action });

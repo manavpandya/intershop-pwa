@@ -5,7 +5,7 @@ import { concatMap, filter, map, mergeMap, switchMap, withLatestFrom } from 'rxj
 
 import { AddressService } from 'ish-core/services/address/address.service';
 import { getLoggedInCustomer } from 'ish-core/store/account/user';
-import { SuccessMessage } from 'ish-core/store/core/messages';
+import { DisplaySuccessMessage } from 'ish-core/store/core/messages';
 import { mapErrorToAction, mapToPayloadProperty } from 'ish-core/utils/operators';
 
 import {
@@ -49,7 +49,7 @@ export class AddressesEffects {
       this.addressService.createCustomerAddress(customer.customerNo, address).pipe(
         mergeMap(newAddress => [
           new CreateCustomerAddressSuccess({ address: newAddress }),
-          new SuccessMessage({
+          new DisplaySuccessMessage({
             message: 'account.addresses.new_address_created.message',
           }),
         ]),
@@ -71,7 +71,7 @@ export class AddressesEffects {
       this.addressService.deleteCustomerAddress(customer.customerNo, addressId).pipe(
         mergeMap(id => [
           new DeleteCustomerAddressSuccess({ addressId: id }),
-          new SuccessMessage({ message: 'account.addresses.new_address_deleted.message' }),
+          new DisplaySuccessMessage({ message: 'account.addresses.new_address_deleted.message' }),
         ]),
         mapErrorToAction(DeleteCustomerAddressFail)
       )

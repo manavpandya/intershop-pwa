@@ -14,7 +14,7 @@ import { HttpError } from 'ish-core/models/http-error/http-error.model';
 import { AccountStoreModule } from 'ish-core/store/account/account-store.module';
 import { LoginUserSuccess } from 'ish-core/store/account/user';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
-import { SuccessMessage } from 'ish-core/store/core/messages';
+import { DisplaySuccessMessage } from 'ish-core/store/core/messages';
 
 import { OrderTemplate } from '../../models/order-template/order-template.model';
 import { OrderTemplateService } from '../../services/order-template/order-template.service';
@@ -170,7 +170,7 @@ describe('Order Template Effects', () => {
       const completion1 = new CreateOrderTemplateSuccess({
         orderTemplate: orderTemplateData[0],
       });
-      const completion2 = new SuccessMessage({
+      const completion2 = new DisplaySuccessMessage({
         message: 'account.order_template.new_order_template.confirmation',
         messageParams: { 0: createOrderTemplateData.title },
       });
@@ -214,7 +214,7 @@ describe('Order Template Effects', () => {
     it('should map to actions of type DeleteOrderTemplateSuccess', () => {
       const action = new DeleteOrderTemplate({ orderTemplateId: id });
       const completion1 = new DeleteOrderTemplateSuccess({ orderTemplateId: id });
-      const completion2 = new SuccessMessage({
+      const completion2 = new DisplaySuccessMessage({
         message: 'account.order_template.delete_order_template.confirmation',
         messageParams: { 0: orderTemplates[0].title },
       });
@@ -264,7 +264,7 @@ describe('Order Template Effects', () => {
     it('should map to actions of type UpdateOrderTemplateSuccess', () => {
       const action = new UpdateOrderTemplate({ orderTemplate: orderTemplateDetailData[0] });
       const completion1 = new UpdateOrderTemplateSuccess({ orderTemplate: orderTemplateDetailData[0] });
-      const completion2 = new SuccessMessage({
+      const completion2 = new DisplaySuccessMessage({
         message: 'account.order_templates.edit.confirmation',
         messageParams: { 0: orderTemplateDetailData[0].title },
       });
