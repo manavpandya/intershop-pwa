@@ -72,7 +72,7 @@ type ValidationBasketIncludeType =
  */
 @Injectable({ providedIn: 'root' })
 export class BasketService {
-  basketId$: Observable<string>;
+  private basketId$: Observable<string>;
   constructor(private apiService: ApiService, private store: Store<{}>) {
     // rebuild the stream everytime the selected id switches back to undefined
     store
