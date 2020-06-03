@@ -104,49 +104,6 @@ describe('Basket Items Effects', () => {
       });
     });
 
-    it('should call the basketService for addItemsToBasket with specific basketId when basketId set', done => {
-      store$.dispatch(
-        new basketActions.LoadBasketSuccess({
-          basket: {
-            id: 'BID',
-            lineItems: [],
-          } as Basket,
-        })
-      );
-
-      const items = [{ sku: 'SKU', quantity: 1, unit: 'pcs.' }];
-      const action = new basketActions.AddItemsToBasket({ items });
-      actions$ = of(action);
-
-      effects.addItemsToBasket$.subscribe(() => {
-        verify(basketServiceMock.addItemsToBasket(items)).once();
-        done();
-      });
-    });
-
-    it('should not call the basketService for addItemsToBasket if no basket in store', () => {
-      const items = [{ sku: 'SKU', quantity: 1, unit: 'pcs.' }];
-      const action = new basketActions.AddItemsToBasket({ items });
-      actions$ = of(action);
-
-      effects.addItemsToBasket$.subscribe(fail, fail);
-
-      verify(basketServiceMock.addItemsToBasket(anything())).never();
-    });
-
-    it('should call the basketService for createBasket when no basket is present', done => {
-      when(basketServiceMock.createBasket()).thenReturn(of({} as Basket));
-
-      const items = [{ sku: 'SKU', quantity: 1, unit: 'pcs.' }];
-      const action = new basketActions.AddItemsToBasket({ items });
-      actions$ = of(action);
-
-      effects.createBasketBeforeAddItemsToBasket$.subscribe(() => {
-        verify(basketServiceMock.createBasket()).once();
-        done();
-      });
-    });
-
     it('should map to action of type AddItemsToBasketSuccess', () => {
       store$.dispatch(
         new basketActions.LoadBasketSuccess({

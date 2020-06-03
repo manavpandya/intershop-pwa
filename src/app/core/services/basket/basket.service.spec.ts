@@ -1,16 +1,26 @@
 import { HttpHeaders } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
+import { Store, combineReducers } from '@ngrx/store';
 import { of, throwError } from 'rxjs';
 import { anyString, anything, capture, instance, mock, verify, when } from 'ts-mockito';
 
 import { Address } from 'ish-core/models/address/address.model';
+import { BasketTotalData } from 'ish-core/models/basket-total/basket-total.interface';
+import { BasketBaseData } from 'ish-core/models/basket/basket.interface';
 import { ApiService } from 'ish-core/services/api/api.service';
+import { LoadBasketSuccess } from 'ish-core/store/checkout/basket/basket.actions';
+import { checkoutReducers } from 'ish-core/store/checkout/checkout-store.module';
+import { coreReducers } from 'ish-core/store/core-store.module';
+import { shoppingReducers } from 'ish-core/store/shopping/shopping-store.module';
 import { BasketMockData } from 'ish-core/utils/dev/basket-mock-data';
+import { ngrxTesting } from 'ish-core/utils/dev/ngrx-testing';
 
 import { BasketItemUpdateType, BasketService } from './basket.service';
 
 describe('Basket Service', () => {
   let basketService: BasketService;
   let apiService: ApiService;
+  let store$: Store<{}>;
 
   const basketMockData = {
     data: {
@@ -28,6 +38,79 @@ describe('Basket Service', () => {
         id: 'paymentId',
       },
       totals: {},
+    },
+  };
+
+  const basketBaseData: BasketBaseData = {
+    id: 'basket_1234',
+    calculated: true,
+    invoiceToAddress: 'urn_invoiceToAddress_123',
+    commonShipToAddress: 'urn_commonShipToAddress_123',
+    commonShippingMethod: 'shipping_method_123',
+    customer: 'Heimroth',
+    lineItems: ['YikKAE8BKC0AAAFrIW8IyLLD'],
+    totals: {
+      grandTotal: {
+        gross: {
+          value: 141796.98,
+          currency: 'USD',
+        },
+        net: {
+          value: 141796.98,
+          currency: 'USD',
+        },
+        tax: {
+          value: 543.65,
+          currency: 'USD',
+        },
+      },
+      itemTotal: {
+        gross: {
+          value: 141796.98,
+          currency: 'USD',
+        },
+        net: {
+          value: 141796.98,
+          currency: 'USD',
+        },
+      },
+    } as BasketTotalData,
+    discounts: {
+      valueBasedDiscounts: ['discount_1'],
+    },
+    surcharges: {
+      itemSurcharges: [
+        {
+          name: 'item_surcharge',
+          amount: {
+            gross: {
+              value: 654.56,
+              currency: 'USD',
+            },
+            net: {
+              value: 647.56,
+              currency: 'USD',
+            },
+          },
+          description: 'Surcharge for battery deposit',
+        },
+      ],
+      bucketSurcharges: [
+        {
+          name: 'bucket_surcharge',
+          amount: {
+            gross: {
+              value: 64.56,
+              currency: 'USD',
+            },
+            net: {
+              value: 61.86,
+              currency: 'USD',
+            },
+          },
+          description: 'Bucket Surcharge for hazardous material',
+        },
+      ],
     },
   };
 
@@ -77,15 +160,46 @@ describe('Basket Service', () => {
 
   beforeEach(() => {
     apiService = mock(ApiService);
-    basketService = new BasketService(instance(apiService));
+    when(apiService.icmServerURL).thenReturn('BASE');
+
+    TestBed.configureTestingModule({
+      imports: [
+        ngrxTesting({
+          reducers: {
+            ...coreReducers,
+            checkout: combineReducers(checkoutReducers),
+            shopping: combineReducers(shoppingReducers),
+          },
+        }),
+      ],
+      providers: [BasketService, { provide: ApiService, useFactory: () => instance(apiService) }],
+    });
+
+    basketService = TestBed.get(BasketService);
+    store$ = TestBed.get(Store);
   });
 
-  it("should get basket data when 'getBasket' is called", done => {
+  it("should get basket data when 'getBasket' is called and a basket exists", done => {
+    when(apiService.get(`baskets`, anything())).thenReturn(of({ data: [basketBaseData], links: {} }));
     when(apiService.get(`baskets/current`, anything())).thenReturn(of(basketMockData));
+
+    when(apiService.post(`baskets`, anything(), anything())).thenReturn(of(basketMockData));
 
     basketService.getBasket().subscribe(data => {
       expect(data.id).toEqual(basketMockData.data.id);
+      verify(apiService.post(`baskets`, anything())).never();
       verify(apiService.get(`baskets/current`, anything())).once();
+      done();
+    });
+  });
+
+  it("should create basket data when 'getBasket' is called and no basket exists", done => {
+    when(apiService.post(`baskets`, anything(), anything())).thenReturn(of(basketMockData));
+    when(apiService.get(`baskets`, anything())).thenReturn(of({ data: [] }));
+
+    basketService.getBasket().subscribe(data => {
+      expect(data.id).toEqual(basketMockData.data.id);
+      verify(apiService.post(`baskets`, anything(), anything())).once();
       done();
     });
   });
@@ -148,10 +262,11 @@ describe('Basket Service', () => {
   });
 
   it("should post item to basket when 'addItemsToBasket' is called", done => {
+    store$.dispatch(new LoadBasketSuccess({ basket: BasketMockData.getBasket() }));
     when(apiService.post(anything(), anything(), anything())).thenReturn(of({}));
 
     basketService.addItemsToBasket([itemMockData]).subscribe(() => {
-      verify(apiService.post(`baskets/current/items`, anything(), anything())).once();
+      verify(apiService.post(`baskets/${BasketMockData.getBasket().id}/items`, anything(), anything())).once();
       done();
     });
   });

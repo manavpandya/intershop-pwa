@@ -23,7 +23,7 @@ export class BasketEffects {
   @Effect()
   loadBasket$ = this.actions$.pipe(
     ofType<basketActions.LoadBasket>(basketActions.BasketActionTypes.LoadBasket),
-    mergeMap(_ =>
+    mergeMap(() =>
       this.basketService.getBasket().pipe(
         map(basket => new basketActions.LoadBasketSuccess({ basket })),
         mapErrorToAction(basketActions.LoadBasketFail)

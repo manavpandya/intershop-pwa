@@ -1,7 +1,8 @@
 import { HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable, throwError } from 'rxjs';
-import { catchError, concatMap, map } from 'rxjs/operators';
+import { Store, select } from '@ngrx/store';
+import { EMPTY, Observable, of, throwError } from 'rxjs';
+import { catchError, concatMap, map, shareReplay, take } from 'rxjs/operators';
 
 import { AddressMapper } from 'ish-core/models/address/address.mapper';
 import { Address } from 'ish-core/models/address/address.model';
@@ -19,6 +20,8 @@ import { ShippingMethodData } from 'ish-core/models/shipping-method/shipping-met
 import { ShippingMethodMapper } from 'ish-core/models/shipping-method/shipping-method.mapper';
 import { ShippingMethod } from 'ish-core/models/shipping-method/shipping-method.model';
 import { ApiService, unpackEnvelope } from 'ish-core/services/api/api.service';
+import { getCurrentBasket, getCurrentBasketId } from 'ish-core/store/checkout/basket/basket.selectors';
+import { whenFalsy } from 'ish-core/utils/operators';
 
 export type BasketUpdateType =
   | { invoiceToAddress: string }
@@ -69,7 +72,17 @@ type ValidationBasketIncludeType =
  */
 @Injectable({ providedIn: 'root' })
 export class BasketService {
-  constructor(private apiService: ApiService) {}
+  basketId$: Observable<string>;
+  constructor(private apiService: ApiService, private store: Store<{}>) {
+    // rebuild the stream everytime the selected id switches back to undefined
+    store
+      .pipe(
+        select(getCurrentBasket),
+        whenFalsy()
+      )
+      .subscribe(() => this.buildBasketStream());
+    this.buildBasketStream();
+  }
 
   // http header for Basket API v1
   private basketHeaders = new HttpHeaders({
@@ -120,14 +133,7 @@ export class BasketService {
    * @returns         The basket.
    */
   getBasket(): Observable<Basket> {
-    const params = new HttpParams().set('include', this.allBasketIncludes.join());
-
-    return this.apiService
-      .get<BasketData>(`baskets/current`, {
-        headers: this.basketHeaders,
-        params,
-      })
-      .pipe(map(BasketMapper.fromData));
+    return this.createOrLoadCurrentBasket();
   }
 
   getBasketByToken(apiToken: string): Observable<Basket> {
@@ -178,11 +184,11 @@ export class BasketService {
     }
 
     const params = new HttpParams().set('include', this.allTargetBasketIncludes.join());
-    return this.createOrGetCurrentBasket().pipe(
-      concatMap(basket =>
+    return this.basketId$.pipe(
+      concatMap(basketId =>
         this.apiService
           .post<BasketMergeData>(
-            `baskets/${basket.id}/merges`,
+            `baskets/${basketId}/merges`,
             { sourceBasket: sourceBasketId, sourceAuthenticationToken: authToken },
             {
               headers: this.basketHeaders,
@@ -265,11 +271,15 @@ export class BasketService {
       },
     }));
 
-    return this.apiService
-      .post(`baskets/current/items`, body, {
-        headers: this.basketHeaders,
-      })
-      .pipe(map(BasketInfoMapper.fromInfo));
+    return this.basketId$.pipe(
+      concatMap(basketId =>
+        this.apiService
+          .post(`baskets/${basketId}/items`, body, {
+            headers: this.basketHeaders,
+          })
+          .pipe(map(BasketInfoMapper.fromInfo))
+      )
+    );
   }
 
   /**
@@ -400,13 +410,37 @@ export class BasketService {
           );
   }
 
+  private loadBasket(): Observable<Basket> {
+    const params = new HttpParams().set('include', this.allBasketIncludes.join());
+    return this.apiService
+      .get<BasketData>(`baskets/current`, {
+        headers: this.basketHeaders,
+        params,
+      })
+      .pipe(map(BasketMapper.fromData));
+  }
+
+  /**
+   * Build basket stream
+   * selects or creates editable quote request
+   */
+  private buildBasketStream() {
+    this.basketId$ = this.store.pipe(select(getCurrentBasketId)).pipe(
+      take(1),
+      concatMap(basketId =>
+        basketId ? of(basketId) : this.createOrLoadCurrentBasket().pipe(map(basket => basket.id))
+      ),
+      shareReplay(1)
+    );
+  }
+
   /**
    * Build currentBasket stream
    * gets or creates the basket of the current user
    */
-  private createOrGetCurrentBasket(): Observable<Basket> {
+  private createOrLoadCurrentBasket(): Observable<Basket> {
     return this.getBaskets().pipe(
-      concatMap(baskets => (baskets && baskets.length ? this.getBasket() : this.createBasket()))
+      concatMap(baskets => (baskets && baskets.length ? this.loadBasket() : this.createBasket()))
     );
   }
 }
