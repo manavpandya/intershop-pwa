@@ -17,7 +17,7 @@ export class WishlistService {
    * @returns           The customer's wishlists.
    */
   getWishlists(): Observable<Wishlist[]> {
-    return this.apiService.get(`customers/-/wishlists`).pipe(
+    return this.apiService.get(`privatecustomers/-/wishlists`).pipe(
       unpackEnvelope(),
       map(wishlistData => wishlistData.map(this.wishlistMapper.fromDataToIds)),
       map(wishlistData => wishlistData.map(wishlist => this.getWishlist(wishlist.id))),
@@ -37,7 +37,7 @@ export class WishlistService {
       return throwError('getWishlist() called without wishlistId');
     }
     return this.apiService
-      .get<WishlistData>(`customers/-/wishlists/${wishlistId}`)
+      .get<WishlistData>(`privatecustomers/-/wishlists/${wishlistId}`)
       .pipe(map(wishlistData => this.wishlistMapper.fromData(wishlistData, wishlistId)));
   }
 
@@ -48,7 +48,7 @@ export class WishlistService {
    */
   createWishlist(wishlistData: WishlistHeader): Observable<Wishlist> {
     return this.apiService
-      .post('customers/-/wishlists', wishlistData)
+      .post('privatecustomers/-/wishlists', wishlistData)
       .pipe(map((response: WishlistData) => this.wishlistMapper.fromData(wishlistData, response.title)));
   }
 
@@ -61,7 +61,7 @@ export class WishlistService {
     if (!wishlistId) {
       return throwError('deleteWishlist() called without wishlistId');
     }
-    return this.apiService.delete(`customers/-/wishlists/${wishlistId}`);
+    return this.apiService.delete(`privatecustomers/-/wishlists/${wishlistId}`);
   }
 
   /**
@@ -71,7 +71,7 @@ export class WishlistService {
    */
   updateWishlist(wishlist: Wishlist): Observable<Wishlist> {
     return this.apiService
-      .put(`customers/-/wishlists/${wishlist.id}`, wishlist)
+      .put(`privatecustomers/-/wishlists/${wishlist.id}`, wishlist)
       .pipe(map((response: Wishlist) => this.wishlistMapper.fromUpdate(response, wishlist.id)));
   }
 
@@ -90,7 +90,7 @@ export class WishlistService {
       return throwError('addProductToWishlist() called without sku');
     }
     return this.apiService
-      .post(`customers/-/wishlists/${wishlistId}/products/${sku}`, { quantity })
+      .post(`privatecustomers/-/wishlists/${wishlistId}/products/${sku}`, { quantity })
       .pipe(concatMap(() => this.getWishlist(wishlistId)));
   }
 
@@ -108,7 +108,7 @@ export class WishlistService {
       return throwError('removeProductFromWishlist() called without sku');
     }
     return this.apiService
-      .delete(`customers/-/wishlists/${wishlistId}/products/${sku}`)
+      .delete(`privatecustomers/-/wishlists/${wishlistId}/products/${sku}`)
       .pipe(concatMap(() => this.getWishlist(wishlistId)));
   }
 }

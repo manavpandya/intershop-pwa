@@ -20,7 +20,7 @@ export class AddressService {
    * @returns           The customer's addresses.
    */
   getCustomerAddresses(customerId: string = '-'): Observable<Address[]> {
-    return this.apiService.get(`customers/${customerId}/addresses`).pipe(
+    return this.apiService.get(`privatecustomers/${customerId}/addresses`).pipe(
       unpackEnvelope<Link>(),
       resolveLinks<Address>(this.apiService),
       map(addressesData => addressesData.map(AddressMapper.fromData))
@@ -40,7 +40,7 @@ export class AddressService {
     };
 
     return this.apiService
-      .post(`customers/${customerId}/addresses`, customerAddress)
+      .post(`privatecustomers/${customerId}/addresses`, customerAddress)
       .pipe(resolveLink<Address>(this.apiService), map(AddressMapper.fromData));
   }
 
@@ -56,7 +56,7 @@ export class AddressService {
     };
 
     return this.apiService
-      .put(`customers/${customerId}/addresses/${address.id}`, customerAddress)
+      .put(`privatecustomers/${customerId}/addresses/${address.id}`, customerAddress)
       .pipe(map(AddressMapper.fromData));
   }
 
@@ -67,6 +67,6 @@ export class AddressService {
    * @returns           The id of the deleted address.
    */
   deleteCustomerAddress(customerId: string = '-', addressId: string): Observable<string> {
-    return this.apiService.delete(`customers/${customerId}/addresses/${addressId}`).pipe(mapTo(addressId));
+    return this.apiService.delete(`privatecustomers/${customerId}/addresses/${addressId}`).pipe(mapTo(addressId));
   }
 }

@@ -98,7 +98,7 @@ export class UserService {
       };
     }
 
-    return this.apiService.post('customers', newCustomer, {
+    return this.apiService.post('privatecustomers', newCustomer, {
       captcha: pick(body, ['captcha', 'captchaAction']),
     });
   }
@@ -128,7 +128,7 @@ export class UserService {
     };
 
     if (body.customer.type === 'PrivateCustomer') {
-      return this.apiService.put<User>('customers/-', changedUser).pipe(map(UserMapper.fromData));
+      return this.apiService.put<User>('privatecustomers/-', changedUser).pipe(map(UserMapper.fromData));
     } else {
       return this.apiService.put<User>('customers/-/users/-', changedUser).pipe(map(UserMapper.fromData));
     }
@@ -156,7 +156,7 @@ export class UserService {
     }
 
     if (customer.type === 'PrivateCustomer') {
-      return this.apiService.put('customers/-/credentials/password', { password, currentPassword });
+      return this.apiService.put('privatecustomers/-/credentials/password', { password, currentPassword });
     } else {
       return this.apiService.put('customers/-/users/-/credentials/password', { password, currentPassword });
     }

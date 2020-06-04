@@ -250,11 +250,11 @@ export class PaymentService {
       return throwError('getUserPaymentMethods called without required body data');
     }
 
-    return this.apiService.get(`customers/${customer.customerNo}/payments`).pipe(
+    return this.apiService.get(`privatecustomers/${customer.customerNo}/payments`).pipe(
       unpackEnvelope<Link>(),
       resolveLinks<PaymentInstrumentData>(this.apiService),
       concatMap(instruments =>
-        this.apiService.options(`customers/${customer.customerNo}/payments`).pipe(
+        this.apiService.options(`privatecustomers/${customer.customerNo}/payments`).pipe(
           unpackEnvelope<PaymentMethodOptionsDataType>('methods'),
           map(methods => PaymentMethodMapper.fromOptions({ methods, instruments }))
         )
@@ -292,7 +292,7 @@ export class PaymentService {
     };
 
     return this.apiService
-      .post(`customers/${customerNo}/payments`, body)
+      .post(`privatecustomers/${customerNo}/payments`, body)
       .pipe(resolveLink<PaymentInstrument>(this.apiService));
   }
 
@@ -309,6 +309,6 @@ export class PaymentService {
       return throwError('deleteUserPayment() called without paymentInstrumentId');
     }
 
-    return this.apiService.delete(`customers/${customerNo}/payments/${paymentInstrumentId}`);
+    return this.apiService.delete(`privatecustomers/${customerNo}/payments/${paymentInstrumentId}`);
   }
 }
