@@ -2,7 +2,7 @@ import { HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store, select } from '@ngrx/store';
 import { EMPTY, Observable, of, throwError } from 'rxjs';
-import { catchError, concatMap, map, shareReplay, take } from 'rxjs/operators';
+import { catchError, concatMap, distinctUntilChanged, map, shareReplay, take } from 'rxjs/operators';
 
 import { AddressMapper } from 'ish-core/models/address/address.mapper';
 import { Address } from 'ish-core/models/address/address.model';
@@ -21,7 +21,6 @@ import { ShippingMethodMapper } from 'ish-core/models/shipping-method/shipping-m
 import { ShippingMethod } from 'ish-core/models/shipping-method/shipping-method.model';
 import { ApiService, unpackEnvelope } from 'ish-core/services/api/api.service';
 import { getCurrentBasket, getCurrentBasketId } from 'ish-core/store/checkout/basket/basket.selectors';
-import { whenFalsy } from 'ish-core/utils/operators';
 
 export type BasketUpdateType =
   | { invoiceToAddress: string }
@@ -78,13 +77,9 @@ export class BasketService {
     store
       .pipe(
         select(getCurrentBasket),
-        whenFalsy()
+        distinctUntilChanged()
       )
-      .subscribe(() => {
-        console.log('getCurrentBasket falsy, rebuilding stream...');
-        this.buildBasketStream();
-      });
-    this.buildBasketStream();
+      .subscribe(() => this.buildBasketStream());
   }
 
   // http header for Basket API v1
@@ -185,8 +180,6 @@ export class BasketService {
     if (!authToken) {
       return throwError('mergeBasket() called without authToken');
     }
-    console.log('sourceBasketId: ', sourceBasketId);
-    this.basketId$.pipe(take(1)).subscribe(cb => console.log('currentBasketId: ', cb));
     const params = new HttpParams().set('include', this.allTargetBasketIncludes.join());
     return this.createOrLoadCurrentBasket().pipe(
       concatMap(basket =>
@@ -429,7 +422,6 @@ export class BasketService {
    * selects or creates editable quote request
    */
   private buildBasketStream() {
-    console.log('building Basket Stream');
     this.basketId$ = this.store.pipe(select(getCurrentBasketId)).pipe(
       take(1),
       concatMap(basketId =>
@@ -444,7 +436,6 @@ export class BasketService {
    * gets or creates the basket of the current user
    */
   private createOrLoadCurrentBasket(): Observable<Basket> {
-    console.log('createOrLoadCurrentBasket');
     return this.getBaskets().pipe(
       concatMap(baskets => (baskets && baskets.length ? this.loadBasket() : this.createBasket()))
     );
