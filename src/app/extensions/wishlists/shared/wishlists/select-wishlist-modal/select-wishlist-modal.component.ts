@@ -139,7 +139,7 @@ export class SelectWishlistModalComponent implements OnInit, OnDestroy {
     }
   }
 
-  /* don't show wishlist selection form but add a product immediately if there is a preferred wishlist */
+  /** don't show wishlist selection form but add a product immediately if there is a preferred wishlist */
   private addProductToPreferredWishlist(): boolean {
     if (this.showForm && this.preferredWishlist && this.addMoveProduct === 'add') {
       this.updateWishlistForm.get('wishlist').setValue(this.preferredWishlist.id);
@@ -187,7 +187,6 @@ export class SelectWishlistModalComponent implements OnInit, OnDestroy {
     };
   }
 
-  /* *  returns the title of the selected wishlist */
   get selectedWishlistTitle(): string {
     const selectedValue = this.updateWishlistForm.get('wishlist').value;
     if (selectedValue === 'newList') {

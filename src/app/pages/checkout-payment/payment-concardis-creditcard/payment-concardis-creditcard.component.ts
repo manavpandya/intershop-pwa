@@ -51,7 +51,9 @@ export class PaymentConcardisCreditcardComponent extends PaymentConcardisCompone
     );
   }
 
-  /* ---------------------------------------- load concardis script if component is visible ------------------------------------------- */
+  /**
+   * load concardis script if component is visible
+   */
   loadScript() {
     // load script only once if component becomes visible
     if (this.activated && !this.scriptLoaded) {
@@ -96,8 +98,6 @@ export class PaymentConcardisCreditcardComponent extends PaymentConcardisCompone
         );
     }
   }
-
-  /* ---------------------------------------- concardis callback functions  ------------------------------------------- */
 
   /**
    * call back function to initialize iframes for cardNumber and cvc
@@ -180,8 +180,6 @@ export class PaymentConcardisCreditcardComponent extends PaymentConcardisCompone
     }
     this.cd.detectChanges();
   }
-
-  /* ---------------------------------------- submit form  ------------------------------------------- */
 
   /**
    * submit concardis payment form

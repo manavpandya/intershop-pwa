@@ -29,7 +29,9 @@ export class CheckoutAddressPageComponent implements OnInit {
 
   nextStepRequested = false;
 
-  // initial basket's valid addresses in order to decide which address component should be displayed
+  /**
+   * initial basket's valid addresses in order to decide which address component should be displayed
+   */
   validBasketAddresses$: Observable<boolean>;
 
   constructor(private checkoutFacade: CheckoutFacade, private accountFacade: AccountFacade, private router: Router) {}
