@@ -222,9 +222,9 @@ export class BasketService {
    * @param scopes    Basket scopes which should be validated ( see also BasketValidationScopeType ), default: minimal scope (max items limit, empty basket)
    * @returns         The (adjusted) basket and the validation results.
    */
-  validateBasket(basketId: string, scopes: BasketValidationScopeType[] = ['']): Observable<BasketValidation> {
+  validateBasket(scopes: BasketValidationScopeType[] = ['']): Observable<BasketValidation> {
     const body = {
-      basket: basketId,
+      basket: 'current',
       adjustmentsAllowed: !scopes.some(scope => scope === 'All'), // don't allow adjustments for 'All' validation steps, because you cannot show them to the user at once
       scopes,
     };

@@ -246,7 +246,7 @@ describe('Basket Service', () => {
   it("should validate the basket when 'validateBasket' is called", done => {
     when(apiService.post(anything(), anything(), anything())).thenReturn(of(undefined));
 
-    basketService.validateBasket(basketMockData.data.id).subscribe(() => {
+    basketService.validateBasket().subscribe(() => {
       verify(apiService.post(`baskets/current/validations`, anything(), anything())).once();
       done();
     });
