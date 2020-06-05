@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Store, select } from '@ngrx/store';
-import { concatMap, filter, map, tap, withLatestFrom } from 'rxjs/operators';
+import { concatMap, filter, map, mergeMap, tap, withLatestFrom } from 'rxjs/operators';
 
 import {
   BasketValidationResultType,
@@ -84,7 +84,7 @@ export class BasketValidationEffects {
         }
       }
       return this.basketService.validateBasket(scopes).pipe(
-        map(basketValidation =>
+        mergeMap(basketValidation =>
           basketValidation.results.valid
             ? targetStep === 5 && !basketValidation.results.adjusted
               ? [

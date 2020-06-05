@@ -72,14 +72,10 @@ type ValidationBasketIncludeType =
 @Injectable({ providedIn: 'root' })
 export class BasketService {
   private basketId$: Observable<string>;
-  constructor(private apiService: ApiService, private store: Store<{}>) {
+  constructor(private apiService: ApiService, private store: Store) {
     // rebuild the stream everytime the selected id switches back to undefined
-    store
-      .pipe(
-        select(getCurrentBasket),
-        distinctUntilChanged()
-      )
-      .subscribe(() => this.buildBasketStream());
+    store.pipe(select(getCurrentBasket), distinctUntilChanged()).subscribe(() => this.buildBasketStream());
+    this.buildBasketStream();
   }
 
   // http header for Basket API v1
@@ -223,19 +219,22 @@ export class BasketService {
    * @returns         The (adjusted) basket and the validation results.
    */
   validateBasket(scopes: BasketValidationScopeType[] = ['']): Observable<BasketValidation> {
-    const body = {
-      basket: 'current',
-      adjustmentsAllowed: !scopes.some(scope => scope === 'All'), // don't allow adjustments for 'All' validation steps, because you cannot show them to the user at once
-      scopes,
-    };
-
     const params = new HttpParams().set('include', this.allBasketValidationIncludes.join());
-    return this.apiService
-      .post<BasketValidationData>(`baskets/current/validations`, body, {
-        headers: this.basketHeaders,
-        params,
-      })
-      .pipe(map(BasketValidationMapper.fromData));
+    return this.basketId$.pipe(
+      map(basketId => ({
+        basket: basketId,
+        adjustmentsAllowed: !scopes.some(scope => scope === 'All'), // don't allow adjustments for 'All' validation steps, because you cannot show them to the user at once
+        scopes,
+      })),
+      concatMap(body =>
+        this.apiService
+          .post<BasketValidationData>(`baskets/current/validations`, body, {
+            headers: this.basketHeaders,
+            params,
+          })
+          .pipe(map(BasketValidationMapper.fromData))
+      )
+    );
   }
 
   /**

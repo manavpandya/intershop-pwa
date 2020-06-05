@@ -20,7 +20,7 @@ import { BasketItemUpdateType, BasketService } from './basket.service';
 describe('Basket Service', () => {
   let basketService: BasketService;
   let apiService: ApiService;
-  let store$: Store<{}>;
+  let store$: Store;
 
   const basketMockData = {
     data: {
@@ -245,6 +245,8 @@ describe('Basket Service', () => {
 
   it("should validate the basket when 'validateBasket' is called", done => {
     when(apiService.post(anything(), anything(), anything())).thenReturn(of(undefined));
+    when(apiService.get(`baskets`, anything())).thenReturn(of({ data: [basketBaseData], links: {} }));
+    when(apiService.get(`baskets/current`, anything())).thenReturn(of(basketMockData));
 
     basketService.validateBasket().subscribe(() => {
       verify(apiService.post(`baskets/current/validations`, anything(), anything())).once();
