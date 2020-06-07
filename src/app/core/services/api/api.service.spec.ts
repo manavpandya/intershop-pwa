@@ -1,7 +1,7 @@
 import { HttpHeaders } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { Action, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { provideMockStore } from '@ngrx/store/testing';
 import * as using from 'jasmine-data-provider';
 import { noop } from 'rxjs';
@@ -13,7 +13,7 @@ import { AccountStoreModule } from 'ish-core/store/account/account-store.module'
 import { SetAPIToken } from 'ish-core/store/account/user';
 import { ApplyConfiguration, getICMServerURL, getRestEndpoint } from 'ish-core/store/core/configuration';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
-import { ErrorActionTypes, ServerError } from 'ish-core/store/core/error';
+import { ErrorActionTypes } from 'ish-core/store/core/error';
 
 import { ApiService, constructUrlForPath, resolveLink, resolveLinks, unpackEnvelope } from './api.service';
 import { ApiServiceErrorHandler } from './api.service.errorhandler';
@@ -68,9 +68,10 @@ describe('Api Service', () => {
       consoleSpy.mockRestore();
 
       verify(storeSpy$.dispatch(anything())).once();
-      const [action] = capture(storeSpy$.dispatch).last();
-      expect((action as Action).type).toEqual(ErrorActionTypes.ServerError);
-      expect((action as ServerError).payload.error).toHaveProperty('statusText', statusText);
+      // tslint:disable-next-line: no-any
+      const [action] = capture(storeSpy$.dispatch).last() as any;
+      expect(action.type).toEqual(ErrorActionTypes.ServerError);
+      expect(action.payload.error).toHaveProperty('statusText', statusText);
     });
 
     it('should call the httpClient.get method when apiService.get method is called.', done => {
@@ -95,9 +96,10 @@ describe('Api Service', () => {
       consoleSpy.mockRestore();
 
       verify(storeSpy$.dispatch(anything())).once();
-      const [action] = capture(storeSpy$.dispatch).last();
-      expect((action as Action).type).toEqual(ErrorActionTypes.ServerError);
-      expect((action as ServerError).payload.error).toHaveProperty('statusText', statusText);
+      // tslint:disable-next-line: no-any
+      const [action] = capture(storeSpy$.dispatch).last() as any;
+      expect(action.type).toEqual(ErrorActionTypes.ServerError);
+      expect(action.payload.error).toHaveProperty('statusText', statusText);
     });
 
     it('should call the httpClient.put method when apiService.put method is called.', done => {
