@@ -1,4 +1,6 @@
-import { RecentlyAction, RecentlyActionTypes } from './recently.actions';
+import { createReducer, on } from '@ngrx/store';
+
+import { addToRecently, clearRecently } from './recently.actions';
 
 export interface RecentlyState {
   products: { sku: string; group?: string }[];
@@ -7,21 +9,16 @@ export interface RecentlyState {
 const initialState: RecentlyState = {
   products: [],
 };
+export const recentlyReducer = createReducer(
+  initialState,
+  on(addToRecently, (state, action) => {
+    const products = [action.payload, ...state.products];
 
-export function recentlyReducer(state = initialState, action: RecentlyAction): RecentlyState {
-  switch (action.type) {
-    case RecentlyActionTypes.AddToRecently: {
-      const products = [action.payload, ...state.products];
+    return { ...state, products };
+  }),
+  on(clearRecently, state => {
+    const products = [];
 
-      return { ...state, products };
-    }
-
-    case RecentlyActionTypes.ClearRecently: {
-      const products = [];
-
-      return { ...state, products };
-    }
-  }
-
-  return state;
-}
+    return { ...state, products };
+  })
+);

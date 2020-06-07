@@ -19,18 +19,18 @@ export function distinctCompareWith<T>(observable: Observable<T>): OperatorFunct
 }
 
 // tslint:disable-next-line:no-any
-export function mapErrorToAction<S, T>(actionType: new (error: { error: HttpError }) => T, extras?: any) {
+export function mapErrorToAction<S, T>(actionType: (props: { payload: { error: HttpError } }) => T, extras?: any) {
   return (source$: Observable<S | T>) =>
     source$.pipe(
       // tslint:disable-next-line:ban ban-types
       catchError((err: HttpErrorResponse) => {
         /*
-          display error in certain circumstances:
-          typeof window === 'undefined' -- universal mode
-          !process.env.JEST_WORKER_ID -- excludes display for jest
-          process.env.DEBUG -- when environment explicitely wants it
-          err instanceof Error -- i.e. TypeErrors that would be suppressed otherwise
-         */
+            display error in certain circumstances:
+            typeof window === 'undefined' -- universal mode
+            !process.env.JEST_WORKER_ID -- excludes display for jest
+            process.env.DEBUG -- when environment explicitely wants it
+            err instanceof Error -- i.e. TypeErrors that would be suppressed otherwise
+           */
         if (
           typeof window === 'undefined' ||
           (typeof process !== 'undefined' && !process.env.JEST_WORKER_ID) ||
@@ -39,7 +39,7 @@ export function mapErrorToAction<S, T>(actionType: new (error: { error: HttpErro
         ) {
           console.error(err);
         }
-        const errorAction = new actionType({ error: HttpErrorMapper.fromError(err), ...extras });
+        const errorAction = actionType({ payload: { error: HttpErrorMapper.fromError(err), ...extras } });
         return of(errorAction);
       })
     );

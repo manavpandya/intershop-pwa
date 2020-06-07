@@ -15,12 +15,7 @@ import { HttpError } from 'ish-core/models/http-error/http-error.model';
 import { ConfigurationService } from 'ish-core/services/configuration/configuration.service';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
 
-import {
-  ApplyConfiguration,
-  ConfigurationActionTypes,
-  LoadServerConfig,
-  LoadServerConfigFail,
-} from './configuration.actions';
+import { applyConfiguration, loadServerConfig, loadServerConfigFail, setGTMToken } from './configuration.actions';
 import { ConfigurationEffects } from './configuration.effects';
 
 describe('Configuration Effects', () => {
@@ -55,7 +50,7 @@ describe('Configuration Effects', () => {
     it('should trigger the loading of config data on the first page', () => {
       // tslint:disable-next-line: no-any
       const action = routerNavigationAction({ payload: {} as any });
-      const expected = new LoadServerConfig();
+      const expected = loadServerConfig();
 
       actions$ = hot('a', { a: action });
       expect(effects.loadServerConfigOnInit$).toBeObservable(cold('a', { a: expected }));
@@ -63,8 +58,10 @@ describe('Configuration Effects', () => {
 
     it('should not trigger the loading of config data on the second page', () => {
       store$.dispatch(
-        new ApplyConfiguration({
-          _serverConfig: { application: 'intershop.B2CResponsive' },
+        applyConfiguration({
+          payload: {
+            _serverConfig: { application: 'intershop.B2CResponsive' },
+          },
         })
       );
 
@@ -83,8 +80,8 @@ describe('Configuration Effects', () => {
     });
 
     it('should map to action of type ApplyConfiguration', () => {
-      const action = new LoadServerConfig();
-      const completion = new ApplyConfiguration({ _serverConfig: {} });
+      const action = loadServerConfig();
+      const completion = applyConfiguration({ payload: { _serverConfig: {} } });
 
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
@@ -95,8 +92,8 @@ describe('Configuration Effects', () => {
     it('should map invalid request to action of type LoadServerConfigFail', () => {
       when(configurationServiceMock.getServerConfiguration()).thenReturn(throwError({ message: 'invalid' }));
 
-      const action = new LoadServerConfig();
-      const completion = new LoadServerConfigFail({ error: { message: 'invalid' } as HttpError });
+      const action = loadServerConfig();
+      const completion = loadServerConfigFail({ payload: { error: { message: 'invalid' } as HttpError } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -115,7 +112,7 @@ describe('Configuration Effects', () => {
 
       effects.setInitialRestEndpoint$.subscribe(
         data => {
-          expect(data.type).toEqual(ConfigurationActionTypes.ApplyConfiguration);
+          expect(data.type).toEqual(applyConfiguration.type);
           testComplete$.next();
         },
         fail,
@@ -156,7 +153,7 @@ describe('Configuration Effects', () => {
 
       effects.setGTMToken$.subscribe(
         data => {
-          expect(data.type).toEqual(ConfigurationActionTypes.SetGTMToken);
+          expect(data.type).toEqual(setGTMToken.type);
           expect(data.payload).toHaveProperty('gtmToken', 'dummy');
           testComplete$.next();
         },

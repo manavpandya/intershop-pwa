@@ -10,10 +10,10 @@ import { anything, capture, spy, verify } from 'ts-mockito';
 import { Link } from 'ish-core/models/link/link.model';
 import { Locale } from 'ish-core/models/locale/locale.model';
 import { AccountStoreModule } from 'ish-core/store/account/account-store.module';
-import { SetAPIToken } from 'ish-core/store/account/user';
-import { ApplyConfiguration, getICMServerURL, getRestEndpoint } from 'ish-core/store/core/configuration';
+import { setAPIToken } from 'ish-core/store/account/user';
+import { applyConfiguration, getICMServerURL, getRestEndpoint } from 'ish-core/store/core/configuration';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
-import { ErrorActionTypes } from 'ish-core/store/core/error';
+import { serverError } from 'ish-core/store/core/error';
 
 import { ApiService, constructUrlForPath, resolveLink, resolveLinks, unpackEnvelope } from './api.service';
 import { ApiServiceErrorHandler } from './api.service.errorhandler';
@@ -70,7 +70,7 @@ describe('Api Service', () => {
       verify(storeSpy$.dispatch(anything())).once();
       // tslint:disable-next-line: no-any
       const [action] = capture(storeSpy$.dispatch).last() as any;
-      expect(action.type).toEqual(ErrorActionTypes.ServerError);
+      expect(action.type).toEqual(serverError.type);
       expect(action.payload.error).toHaveProperty('statusText', statusText);
     });
 
@@ -98,7 +98,7 @@ describe('Api Service', () => {
       verify(storeSpy$.dispatch(anything())).once();
       // tslint:disable-next-line: no-any
       const [action] = capture(storeSpy$.dispatch).last() as any;
-      expect(action.type).toEqual(ErrorActionTypes.ServerError);
+      expect(action.type).toEqual(serverError.type);
       expect(action.payload.error).toHaveProperty('statusText', statusText);
     });
 
@@ -403,7 +403,9 @@ describe('Api Service', () => {
       httpTestingController = TestBed.inject(HttpTestingController);
       store$ = TestBed.inject(Store);
 
-      store$.dispatch(new ApplyConfiguration({ baseURL: 'http://www.example.org', server: 'WFS', channel: 'site' }));
+      store$.dispatch(
+        applyConfiguration({ payload: { baseURL: 'http://www.example.org', server: 'WFS', channel: 'site' } })
+      );
     });
 
     afterEach(() => {
@@ -461,7 +463,7 @@ describe('Api Service', () => {
 
     it('should have a token, when token is in store', () => {
       const apiToken = 'blubb';
-      store$.dispatch(new SetAPIToken({ apiToken }));
+      store$.dispatch(setAPIToken({ payload: { apiToken } }));
       apiService.get('dummy').subscribe(fail, fail, fail);
 
       const req = httpTestingController.expectOne(`${REST_URL}/dummy`);
@@ -471,7 +473,7 @@ describe('Api Service', () => {
 
     it('should not have a token, when request is authorization request', () => {
       const apiToken = 'blubb';
-      store$.dispatch(new SetAPIToken({ apiToken }));
+      store$.dispatch(setAPIToken({ payload: { apiToken } }));
       apiService
         .get('dummy', { headers: new HttpHeaders().set(ApiService.AUTHORIZATION_HEADER_KEY, 'dummy') })
         .subscribe(fail, fail, fail);

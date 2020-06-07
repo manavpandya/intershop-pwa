@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
 import { StoreWithSnapshots, provideStoreSnapshots } from 'ish-core/utils/dev/ngrx-testing';
 
-import { ApplyConfiguration, SetGTMToken } from './configuration.actions';
+import { applyConfiguration, setGTMToken } from './configuration.actions';
 import {
   getAvailableLocales,
   getCurrentLocale,
@@ -52,12 +52,14 @@ describe('Configuration Selectors', () => {
   describe('after importing settings', () => {
     beforeEach(() => {
       store$.dispatch(
-        new ApplyConfiguration({
-          baseURL: 'http://example.org',
-          server: 'api',
-          serverStatic: 'static',
-          channel: 'site',
-          features: ['compare', 'recently'],
+        applyConfiguration({
+          payload: {
+            baseURL: 'http://example.org',
+            server: 'api',
+            serverStatic: 'static',
+            channel: 'site',
+            features: ['compare', 'recently'],
+          },
         })
       );
     });
@@ -73,8 +75,10 @@ describe('Configuration Selectors', () => {
     describe('after setting application', () => {
       beforeEach(() => {
         store$.dispatch(
-          new ApplyConfiguration({
-            application: 'app',
+          applyConfiguration({
+            payload: {
+              application: 'app',
+            },
           })
         );
       });
@@ -91,7 +95,7 @@ describe('Configuration Selectors', () => {
 
   describe('after setting gtm token', () => {
     beforeEach(() => {
-      store$.dispatch(new SetGTMToken({ gtmToken: 'dummy' }));
+      store$.dispatch(setGTMToken({ payload: { gtmToken: 'dummy' } }));
     });
 
     it('should set token to state', () => {
@@ -102,21 +106,23 @@ describe('Configuration Selectors', () => {
   describe('after setting serverConfig', () => {
     beforeEach(() => {
       store$.dispatch(
-        new ApplyConfiguration({
-          _serverConfig: {
-            application: {
-              applicationType: 'intershop.B2CResponsive',
-              urlIdentifier: '-',
-            },
-            basket: {
-              acceleration: true,
-            },
-            general: {
-              locales: ['de_DE', 'en_US'],
-            },
-            services: {
-              captcha: {
-                siteKey: 'QWERTY',
+        applyConfiguration({
+          payload: {
+            _serverConfig: {
+              application: {
+                applicationType: 'intershop.B2CResponsive',
+                urlIdentifier: '-',
+              },
+              basket: {
+                acceleration: true,
+              },
+              general: {
+                locales: ['de_DE', 'en_US'],
+              },
+              services: {
+                captcha: {
+                  siteKey: 'QWERTY',
+                },
               },
             },
           },

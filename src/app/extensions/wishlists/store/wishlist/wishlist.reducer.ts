@@ -1,10 +1,29 @@
 import { EntityState, createEntityAdapter } from '@ngrx/entity';
+import { createReducer, on } from '@ngrx/store';
 
 import { HttpError } from 'ish-core/models/http-error/http-error.model';
 
 import { Wishlist } from '../../models/wishlist/wishlist.model';
 
-import { WishlistsAction, WishlistsActionTypes } from './wishlist.actions';
+import {
+  addProductToWishlistSuccess,
+  createWishlist,
+  createWishlistFail,
+  createWishlistSuccess,
+  deleteWishlist,
+  deleteWishlistFail,
+  deleteWishlistSuccess,
+  loadWishlists,
+  loadWishlistsFail,
+  loadWishlistsSuccess,
+  moveItemToWishlist,
+  removeItemFromWishlist,
+  removeItemFromWishlistSuccess,
+  selectWishlist,
+  updateWishlist,
+  updateWishlistFail,
+  updateWishlistSuccess,
+} from './wishlist.actions';
 
 export interface WishlistState extends EntityState<Wishlist> {
   loading: boolean;
@@ -21,45 +40,42 @@ export const initialState: WishlistState = wishlistsAdapter.getInitialState({
   selected: undefined,
   error: undefined,
 });
-
-export function wishlistReducer(state = initialState, action: WishlistsAction): WishlistState {
-  switch (action.type) {
-    case WishlistsActionTypes.LoadWishlists:
-    case WishlistsActionTypes.CreateWishlist:
-    case WishlistsActionTypes.DeleteWishlist:
-    case WishlistsActionTypes.UpdateWishlist:
-    case WishlistsActionTypes.RemoveItemFromWishlist:
-    case WishlistsActionTypes.MoveItemToWishlist: {
-      return {
-        ...state,
-        loading: true,
-      };
-    }
-    case WishlistsActionTypes.LoadWishlistsFail:
-    case WishlistsActionTypes.DeleteWishlistFail:
-    case WishlistsActionTypes.CreateWishlistFail:
-    case WishlistsActionTypes.UpdateWishlistFail: {
-      const { error } = action.payload;
-      return {
-        ...state,
-        loading: false,
-        error,
-        selected: undefined,
-      };
-    }
-
-    case WishlistsActionTypes.LoadWishlistsSuccess: {
-      const { wishlists } = action.payload;
-      return wishlistsAdapter.setAll(wishlists, {
-        ...state,
-        loading: false,
-      });
-    }
-
-    case WishlistsActionTypes.UpdateWishlistSuccess:
-    case WishlistsActionTypes.AddProductToWishlistSuccess:
-    case WishlistsActionTypes.RemoveItemFromWishlistSuccess:
-    case WishlistsActionTypes.CreateWishlistSuccess: {
+export const wishlistReducer = createReducer(
+  initialState,
+  on(
+    moveItemToWishlist,
+    loadWishlists,
+    createWishlist,
+    deleteWishlist,
+    updateWishlist,
+    removeItemFromWishlist,
+    state => ({
+      ...state,
+      loading: true,
+    })
+  ),
+  on(updateWishlistFail, loadWishlistsFail, deleteWishlistFail, createWishlistFail, (state, action) => {
+    const { error } = action.payload;
+    return {
+      ...state,
+      loading: false,
+      error,
+      selected: undefined,
+    };
+  }),
+  on(loadWishlistsSuccess, (state, action) => {
+    const { wishlists } = action.payload;
+    return wishlistsAdapter.setAll(wishlists, {
+      ...state,
+      loading: false,
+    });
+  }),
+  on(
+    createWishlistSuccess,
+    updateWishlistSuccess,
+    addProductToWishlistSuccess,
+    removeItemFromWishlistSuccess,
+    (state, action) => {
       const { wishlist } = action.payload;
 
       return wishlistsAdapter.upsertOne(wishlist, {
@@ -67,23 +83,19 @@ export function wishlistReducer(state = initialState, action: WishlistsAction): 
         loading: false,
       });
     }
-
-    case WishlistsActionTypes.DeleteWishlistSuccess: {
-      const { wishlistId } = action.payload;
-      return wishlistsAdapter.removeOne(wishlistId, {
-        ...state,
-        loading: false,
-      });
-    }
-
-    case WishlistsActionTypes.SelectWishlist: {
-      const { id } = action.payload;
-      return {
-        ...state,
-        selected: id,
-      };
-    }
-  }
-
-  return state;
-}
+  ),
+  on(deleteWishlistSuccess, (state, action) => {
+    const { wishlistId } = action.payload;
+    return wishlistsAdapter.removeOne(wishlistId, {
+      ...state,
+      loading: false,
+    });
+  }),
+  on(selectWishlist, (state, action) => {
+    const { id } = action.payload;
+    return {
+      ...state,
+      selected: id,
+    };
+  })
+);

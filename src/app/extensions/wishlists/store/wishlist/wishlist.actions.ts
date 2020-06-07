@@ -1,165 +1,100 @@
-import { Action } from '@ngrx/store';
+import { createAction, props } from '@ngrx/store';
 
 import { HttpError } from 'ish-core/models/http-error/http-error.model';
 
 import { Wishlist, WishlistHeader } from '../../models/wishlist/wishlist.model';
+export const loadWishlists = createAction('[Wishlists Internal] Load Wishlists');
 
-export enum WishlistsActionTypes {
-  LoadWishlists = '[Wishlists Internal] Load Wishlists',
-  LoadWishlistsSuccess = '[Wishlists API] Load Wishlists Success',
-  LoadWishlistsFail = '[Wishlists API] Load Wishlists Fail',
+export const loadWishlistsSuccess = createAction(
+  '[Wishlists API] Load Wishlists Success',
+  props<{ payload: { wishlists: Wishlist[] } }>()
+);
 
-  CreateWishlist = '[Wishlists] Create Wishlist',
-  CreateWishlistSuccess = '[Wishlists API] Create Wishlist Success',
-  CreateWishlistFail = '[Wishlists API] Create Wishlist Fail',
+export const loadWishlistsFail = createAction(
+  '[Wishlists API] Load Wishlists Fail',
+  props<{ payload: { error: HttpError } }>()
+);
 
-  UpdateWishlist = '[Wishlists] Update Wishlist',
-  UpdateWishlistSuccess = '[Wishlists API] Update Wishlist Success',
-  UpdateWishlistFail = '[Wishlists API] Update Wishlist Fail',
+export const createWishlist = createAction(
+  '[Wishlists] Create Wishlist',
+  props<{ payload: { wishlist: WishlistHeader } }>()
+);
 
-  DeleteWishlist = '[Wishlists] Delete Wishlist',
-  DeleteWishlistSuccess = '[Wishlists API] Delete Wishlist Success',
-  DeleteWishlistFail = '[Wishlists API] Delete Wishlist Fail',
+export const createWishlistSuccess = createAction(
+  '[Wishlists API] Create Wishlist Success',
+  props<{ payload: { wishlist: Wishlist } }>()
+);
 
-  AddProductToWishlist = '[Wishlists] Add Item to Wishlist',
-  AddProductToWishlistSuccess = '[Wishlists API] Add Item to Wishlist Success',
-  AddProductToWishlistFail = '[Wishlists API] Add Item to Wishlist Fail',
+export const createWishlistFail = createAction(
+  '[Wishlists API] Create Wishlist Fail',
+  props<{ payload: { error: HttpError } }>()
+);
 
-  AddProductToNewWishlist = '[Wishlists Internal] Add Product To New Wishlist',
+export const updateWishlist = createAction('[Wishlists] Update Wishlist', props<{ payload: { wishlist: Wishlist } }>());
 
-  MoveItemToWishlist = '[Wishlists] Move Item to another Wishlist',
+export const updateWishlistSuccess = createAction(
+  '[Wishlists API] Update Wishlist Success',
+  props<{ payload: { wishlist: Wishlist } }>()
+);
 
-  RemoveItemFromWishlist = '[Wishlists] Remove Item from Wishlist',
-  RemoveItemFromWishlistSuccess = '[Wishlists API] Remove Item from Wishlist Success',
-  RemoveItemFromWishlistFail = '[Wishlists API] Remove Item from Wishlist Fail',
+export const updateWishlistFail = createAction(
+  '[Wishlists API] Update Wishlist Fail',
+  props<{ payload: { error: HttpError } }>()
+);
 
-  SelectWishlist = '[Wishlists Internal] Select Wishlist',
-}
+export const deleteWishlist = createAction('[Wishlists] Delete Wishlist', props<{ payload: { wishlistId: string } }>());
 
-export class LoadWishlists implements Action {
-  readonly type = WishlistsActionTypes.LoadWishlists;
-}
+export const deleteWishlistSuccess = createAction(
+  '[Wishlists API] Delete Wishlist Success',
+  props<{ payload: { wishlistId: string } }>()
+);
 
-export class LoadWishlistsSuccess implements Action {
-  readonly type = WishlistsActionTypes.LoadWishlistsSuccess;
-  constructor(public payload: { wishlists: Wishlist[] }) {}
-}
+export const deleteWishlistFail = createAction(
+  '[Wishlists API] Delete Wishlist Fail',
+  props<{ payload: { error: HttpError } }>()
+);
 
-export class LoadWishlistsFail implements Action {
-  readonly type = WishlistsActionTypes.LoadWishlistsFail;
-  constructor(public payload: { error: HttpError }) {}
-}
+export const addProductToWishlist = createAction(
+  '[Wishlists] Add Item to Wishlist',
+  props<{ payload: { wishlistId: string; sku: string; quantity?: number } }>()
+);
 
-export class CreateWishlist implements Action {
-  readonly type = WishlistsActionTypes.CreateWishlist;
-  constructor(public payload: { wishlist: WishlistHeader }) {}
-}
+export const addProductToWishlistSuccess = createAction(
+  '[Wishlists API] Add Item to Wishlist Success',
+  props<{ payload: { wishlist: Wishlist } }>()
+);
 
-export class CreateWishlistSuccess implements Action {
-  readonly type = WishlistsActionTypes.CreateWishlistSuccess;
-  constructor(public payload: { wishlist: Wishlist }) {}
-}
+export const addProductToWishlistFail = createAction(
+  '[Wishlists API] Add Item to Wishlist Fail',
+  props<{ payload: { error: HttpError } }>()
+);
 
-export class CreateWishlistFail implements Action {
-  readonly type = WishlistsActionTypes.CreateWishlistFail;
-  constructor(public payload: { error: HttpError }) {}
-}
+export const addProductToNewWishlist = createAction(
+  '[Wishlists Internal] Add Product To New Wishlist',
+  props<{ payload: { title: string; sku: string } }>()
+);
 
-export class UpdateWishlist implements Action {
-  readonly type = WishlistsActionTypes.UpdateWishlist;
-  constructor(public payload: { wishlist: Wishlist }) {}
-}
+export const moveItemToWishlist = createAction(
+  '[Wishlists] Move Item to another Wishlist',
+  props<{ payload: { source: { id: string }; target: { id?: string; title?: string; sku: string } } }>()
+);
 
-export class UpdateWishlistSuccess implements Action {
-  readonly type = WishlistsActionTypes.UpdateWishlistSuccess;
-  constructor(public payload: { wishlist: Wishlist }) {}
-}
+export const removeItemFromWishlist = createAction(
+  '[Wishlists] Remove Item from Wishlist',
+  props<{ payload: { wishlistId: string; sku: string } }>()
+);
 
-export class UpdateWishlistFail implements Action {
-  readonly type = WishlistsActionTypes.UpdateWishlistFail;
-  constructor(public payload: { error: HttpError }) {}
-}
+export const removeItemFromWishlistSuccess = createAction(
+  '[Wishlists API] Remove Item from Wishlist Success',
+  props<{ payload: { wishlist: Wishlist } }>()
+);
 
-export class DeleteWishlist implements Action {
-  readonly type = WishlistsActionTypes.DeleteWishlist;
-  constructor(public payload: { wishlistId: string }) {}
-}
+export const removeItemFromWishlistFail = createAction(
+  '[Wishlists API] Remove Item from Wishlist Fail',
+  props<{ payload: { error: HttpError } }>()
+);
 
-export class DeleteWishlistSuccess implements Action {
-  readonly type = WishlistsActionTypes.DeleteWishlistSuccess;
-
-  constructor(public payload: { wishlistId: string }) {}
-}
-
-export class DeleteWishlistFail implements Action {
-  readonly type = WishlistsActionTypes.DeleteWishlistFail;
-  constructor(public payload: { error: HttpError }) {}
-}
-
-export class AddProductToWishlist implements Action {
-  readonly type = WishlistsActionTypes.AddProductToWishlist;
-  constructor(public payload: { wishlistId: string; sku: string; quantity?: number }) {}
-}
-
-export class AddProductToWishlistSuccess implements Action {
-  readonly type = WishlistsActionTypes.AddProductToWishlistSuccess;
-  constructor(public payload: { wishlist: Wishlist }) {}
-}
-
-export class AddProductToWishlistFail implements Action {
-  readonly type = WishlistsActionTypes.AddProductToWishlistFail;
-  constructor(public payload: { error: HttpError }) {}
-}
-
-export class AddProductToNewWishlist implements Action {
-  readonly type = WishlistsActionTypes.AddProductToNewWishlist;
-  constructor(public payload: { title: string; sku: string }) {}
-}
-
-export class MoveItemToWishlist implements Action {
-  readonly type = WishlistsActionTypes.MoveItemToWishlist;
-  constructor(public payload: { source: { id: string }; target: { id?: string; title?: string; sku: string } }) {}
-}
-
-export class RemoveItemFromWishlist implements Action {
-  readonly type = WishlistsActionTypes.RemoveItemFromWishlist;
-  constructor(public payload: { wishlistId: string; sku: string }) {}
-}
-
-export class RemoveItemFromWishlistSuccess implements Action {
-  readonly type = WishlistsActionTypes.RemoveItemFromWishlistSuccess;
-  constructor(public payload: { wishlist: Wishlist }) {}
-}
-
-export class RemoveItemFromWishlistFail implements Action {
-  readonly type = WishlistsActionTypes.RemoveItemFromWishlistFail;
-  constructor(public payload: { error: HttpError }) {}
-}
-
-export class SelectWishlist implements Action {
-  readonly type = WishlistsActionTypes.SelectWishlist;
-  constructor(public payload: { id: string }) {}
-}
-
-export type WishlistsAction =
-  | LoadWishlists
-  | LoadWishlistsSuccess
-  | LoadWishlistsFail
-  | CreateWishlist
-  | CreateWishlistSuccess
-  | CreateWishlistFail
-  | UpdateWishlist
-  | UpdateWishlistSuccess
-  | UpdateWishlistFail
-  | DeleteWishlist
-  | DeleteWishlistSuccess
-  | DeleteWishlistFail
-  | AddProductToWishlist
-  | AddProductToWishlistSuccess
-  | AddProductToWishlistFail
-  | AddProductToNewWishlist
-  | MoveItemToWishlist
-  | RemoveItemFromWishlist
-  | RemoveItemFromWishlistSuccess
-  | RemoveItemFromWishlistFail
-  | SelectWishlist;
+export const selectWishlist = createAction(
+  '[Wishlists Internal] Select Wishlist',
+  props<{ payload: { id: string } }>()
+);

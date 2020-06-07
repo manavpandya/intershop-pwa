@@ -8,7 +8,7 @@ import { instance, mock } from 'ts-mockito';
 import { Customer } from 'ish-core/models/customer/customer.model';
 import { CookiesService } from 'ish-core/services/cookies/cookies.service';
 import { AccountStoreModule } from 'ish-core/store/account/account-store.module';
-import { LoginUserSuccess } from 'ish-core/store/account/user';
+import { loginUserSuccess } from 'ish-core/store/account/user';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
 
 import { AuthGuard } from './auth.guard';
@@ -39,7 +39,7 @@ describe('Auth Guard', () => {
     });
 
     it('should return true when user is authorized', done => {
-      store$.dispatch(new LoginUserSuccess({ customer: {} as Customer }));
+      store$.dispatch(loginUserSuccess({ payload: { customer: {} as Customer } }));
 
       authGuard
         .canActivate({} as ActivatedRouteSnapshot, { url: 'home' } as RouterStateSnapshot)

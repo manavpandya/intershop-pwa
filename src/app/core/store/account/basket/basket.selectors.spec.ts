@@ -8,26 +8,26 @@ import { HttpError } from 'ish-core/models/http-error/http-error.model';
 import { LineItem } from 'ish-core/models/line-item/line-item.model';
 import { Product, ProductCompletenessLevel } from 'ish-core/models/product/product.model';
 import { AccountStoreModule } from 'ish-core/store/account/account-store.module';
-import { LoginUserSuccess } from 'ish-core/store/account/user';
+import { loginUserSuccess } from 'ish-core/store/account/user';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
-import { LoadProductSuccess } from 'ish-core/store/shopping/products';
+import { loadProductSuccess } from 'ish-core/store/shopping/products';
 import { ShoppingStoreModule } from 'ish-core/store/shopping/shopping-store.module';
 import { BasketMockData } from 'ish-core/utils/dev/basket-mock-data';
 import { StoreWithSnapshots, provideStoreSnapshots } from 'ish-core/utils/dev/ngrx-testing';
 
 import {
-  AddItemsToBasketSuccess,
-  AddPromotionCodeToBasketFail,
-  ContinueCheckoutSuccess,
-  LoadBasket,
-  LoadBasketEligiblePaymentMethods,
-  LoadBasketEligiblePaymentMethodsFail,
-  LoadBasketEligiblePaymentMethodsSuccess,
-  LoadBasketEligibleShippingMethods,
-  LoadBasketEligibleShippingMethodsFail,
-  LoadBasketEligibleShippingMethodsSuccess,
-  LoadBasketFail,
-  LoadBasketSuccess,
+  addItemsToBasketSuccess,
+  addPromotionCodeToBasketFail,
+  continueCheckoutSuccess,
+  loadBasket,
+  loadBasketEligiblePaymentMethods,
+  loadBasketEligiblePaymentMethodsFail,
+  loadBasketEligiblePaymentMethodsSuccess,
+  loadBasketEligibleShippingMethods,
+  loadBasketEligibleShippingMethodsFail,
+  loadBasketEligibleShippingMethodsSuccess,
+  loadBasketFail,
+  loadBasketSuccess,
 } from './basket.actions';
 import {
   getBasketEligiblePaymentMethods,
@@ -82,10 +82,12 @@ describe('Basket Selectors', () => {
 
   describe('loading a basket', () => {
     beforeEach(() => {
-      store$.dispatch(new LoadBasket());
+      store$.dispatch(loadBasket());
       store$.dispatch(
-        new LoadProductSuccess({
-          product: { sku: 'sku', completenessLevel: ProductCompletenessLevel.Detail } as Product,
+        loadProductSuccess({
+          payload: {
+            product: { sku: 'sku', completenessLevel: ProductCompletenessLevel.Detail } as Product,
+          },
         })
       );
     });
@@ -96,12 +98,14 @@ describe('Basket Selectors', () => {
 
     it('should set loading to false and set basket state', () => {
       store$.dispatch(
-        new LoadBasketSuccess({
-          basket: {
-            id: 'test',
-            lineItems: [{ id: 'test', productSKU: 'sku', quantity: { value: 5 } } as LineItem],
-            payment: { paymentInstrument: { id: 'ISH_INVOICE' } },
-          } as BasketView,
+        loadBasketSuccess({
+          payload: {
+            basket: {
+              id: 'test',
+              lineItems: [{ id: 'test', productSKU: 'sku', quantity: { value: 5 } } as LineItem],
+              payment: { paymentInstrument: { id: 'ISH_INVOICE' } },
+            } as BasketView,
+          },
         })
       );
 
@@ -119,16 +123,20 @@ describe('Basket Selectors', () => {
 
     it('should change the product of the basket line item if the product is changing', () => {
       store$.dispatch(
-        new LoadBasketSuccess({
-          basket: { id: 'test', lineItems: [{ id: 'test', productSKU: 'sku' } as LineItem] } as Basket,
+        loadBasketSuccess({
+          payload: {
+            basket: { id: 'test', lineItems: [{ id: 'test', productSKU: 'sku' } as LineItem] } as Basket,
+          },
         })
       );
       let currentBasket = getCurrentBasket(store$.state);
       expect(currentBasket.lineItems[0].product).toHaveProperty('sku', 'sku');
 
       store$.dispatch(
-        new LoadProductSuccess({
-          product: { sku: 'sku', name: 'new name', completenessLevel: ProductCompletenessLevel.Detail } as Product,
+        loadProductSuccess({
+          payload: {
+            product: { sku: 'sku', name: 'new name', completenessLevel: ProductCompletenessLevel.Detail } as Product,
+          },
         })
       );
 
@@ -138,21 +146,25 @@ describe('Basket Selectors', () => {
 
     it('should set validation results to the lineitem if basket is not valid', () => {
       store$.dispatch(
-        new LoadBasketSuccess({
-          basket: { id: 'test', lineItems: [{ id: 'test', productSKU: 'sku' } as LineItem] } as Basket,
+        loadBasketSuccess({
+          payload: {
+            basket: { id: 'test', lineItems: [{ id: 'test', productSKU: 'sku' } as LineItem] } as Basket,
+          },
         })
       );
       store$.dispatch(
-        new ContinueCheckoutSuccess({
-          targetRoute: '/checkout/address',
-          basketValidation: {
-            results: {
-              valid: false,
-              errors: [
-                { code: 'basket.validation.4711', message: 'test error message', parameters: { lineItemId: 'test' } },
-              ],
-            },
-          } as BasketValidation,
+        continueCheckoutSuccess({
+          payload: {
+            targetRoute: '/checkout/address',
+            basketValidation: {
+              results: {
+                valid: false,
+                errors: [
+                  { code: 'basket.validation.4711', message: 'test error message', parameters: { lineItemId: 'test' } },
+                ],
+              },
+            } as BasketValidation,
+          },
         })
       );
 
@@ -161,7 +173,7 @@ describe('Basket Selectors', () => {
     });
 
     it('should set loading to false and set error state', () => {
-      store$.dispatch(new LoadBasketFail({ error: { message: 'invalid' } as HttpError }));
+      store$.dispatch(loadBasketFail({ payload: { error: { message: 'invalid' } as HttpError } }));
       expect(getBasketLoading(store$.state)).toBeFalse();
       expect(getCurrentBasket(store$.state)).toBeUndefined();
       expect(getCurrentBasketId(store$.state)).toBeUndefined();
@@ -171,7 +183,7 @@ describe('Basket Selectors', () => {
 
   describe('loading eligible shipping methods', () => {
     beforeEach(() => {
-      store$.dispatch(new LoadBasketEligibleShippingMethods());
+      store$.dispatch(loadBasketEligibleShippingMethods());
     });
 
     it('should set the state to loading', () => {
@@ -181,7 +193,9 @@ describe('Basket Selectors', () => {
     describe('and reporting success', () => {
       beforeEach(() => {
         store$.dispatch(
-          new LoadBasketEligibleShippingMethodsSuccess({ shippingMethods: [BasketMockData.getShippingMethod()] })
+          loadBasketEligibleShippingMethodsSuccess({
+            payload: { shippingMethods: [BasketMockData.getShippingMethod()] },
+          })
         );
       });
 
@@ -193,7 +207,9 @@ describe('Basket Selectors', () => {
 
     describe('and reporting failure', () => {
       beforeEach(() => {
-        store$.dispatch(new LoadBasketEligibleShippingMethodsFail({ error: { message: 'error' } as HttpError }));
+        store$.dispatch(
+          loadBasketEligibleShippingMethodsFail({ payload: { error: { message: 'error' } as HttpError } })
+        );
       });
 
       it('should not have loaded shipping methods on error', () => {
@@ -206,7 +222,7 @@ describe('Basket Selectors', () => {
 
   describe('loading eligible payment methods', () => {
     beforeEach(() => {
-      store$.dispatch(new LoadBasketEligiblePaymentMethods());
+      store$.dispatch(loadBasketEligiblePaymentMethods());
     });
 
     it('should set the state to loading', () => {
@@ -216,12 +232,12 @@ describe('Basket Selectors', () => {
     describe('and reporting success', () => {
       beforeEach(() => {
         store$.dispatch(
-          new LoadBasketEligiblePaymentMethodsSuccess({ paymentMethods: [BasketMockData.getPaymentMethod()] })
+          loadBasketEligiblePaymentMethodsSuccess({ payload: { paymentMethods: [BasketMockData.getPaymentMethod()] } })
         );
       });
 
       it('should set load data when user is logged in', () => {
-        store$.dispatch(new LoginUserSuccess({ customer: {} as Customer }));
+        store$.dispatch(loginUserSuccess({ payload: { customer: {} as Customer } }));
         expect(getBasketLoading(store$.state)).toBeFalse();
         expect(getBasketEligiblePaymentMethods(store$.state)).toEqual([BasketMockData.getPaymentMethod()]);
       });
@@ -236,7 +252,9 @@ describe('Basket Selectors', () => {
 
     describe('and reporting failure', () => {
       beforeEach(() => {
-        store$.dispatch(new LoadBasketEligiblePaymentMethodsFail({ error: { message: 'error' } as HttpError }));
+        store$.dispatch(
+          loadBasketEligiblePaymentMethodsFail({ payload: { error: { message: 'error' } as HttpError } })
+        );
       });
 
       it('should not have loaded payment methods on error', () => {
@@ -249,14 +267,14 @@ describe('Basket Selectors', () => {
 
   describe('loading last time and info when a product has been added to basket', () => {
     beforeEach(() => {
-      store$.dispatch(new AddItemsToBasketSuccess({ info: [{ message: 'info' } as BasketInfo] }));
+      store$.dispatch(addItemsToBasketSuccess({ payload: { info: [{ message: 'info' } as BasketInfo] } }));
     });
 
     it('should get the last time when a product was added', () => {
       const firstTimeAdded = new Date(getBasketLastTimeProductAdded(store$.state));
 
       expect(firstTimeAdded).toBeDate();
-      store$.dispatch(new AddItemsToBasketSuccess({ info: undefined }));
+      store$.dispatch(addItemsToBasketSuccess({ payload: { info: undefined } }));
       expect(getBasketLastTimeProductAdded(store$.state)).not.toEqual(firstTimeAdded);
     });
 
@@ -267,7 +285,7 @@ describe('Basket Selectors', () => {
 
   describe('loading promotion error after adding a wrong promotion code', () => {
     beforeEach(() => {
-      store$.dispatch(new AddPromotionCodeToBasketFail({ error: { message: 'error' } as HttpError }));
+      store$.dispatch(addPromotionCodeToBasketFail({ payload: { error: { message: 'error' } as HttpError } }));
     });
 
     it('should reporting the failure in case of an error', () => {
@@ -293,8 +311,8 @@ describe('Basket Selectors', () => {
       },
     };
     beforeEach(() => {
-      store$.dispatch(new LoadBasketSuccess({ basket: BasketMockData.getBasket() }));
-      store$.dispatch(new ContinueCheckoutSuccess({ targetRoute: '/checkout/address', basketValidation }));
+      store$.dispatch(loadBasketSuccess({ payload: { basket: BasketMockData.getBasket() } }));
+      store$.dispatch(continueCheckoutSuccess({ payload: { targetRoute: '/checkout/address', basketValidation } }));
     });
 
     it('should reporting the validation results when called', () => {

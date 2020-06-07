@@ -7,21 +7,21 @@ import { PaymentMethod } from 'ish-core/models/payment-method/payment-method.mod
 import { Product } from 'ish-core/models/product/product.model';
 import { User } from 'ish-core/models/user/user.model';
 import { AccountStoreModule } from 'ish-core/store/account/account-store.module';
-import { ApplyConfiguration } from 'ish-core/store/core/configuration';
+import { applyConfiguration } from 'ish-core/store/core/configuration';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
-import { LoadProductSuccess } from 'ish-core/store/shopping/products';
+import { loadProductSuccess } from 'ish-core/store/shopping/products';
 import { StoreWithSnapshots, provideStoreSnapshots } from 'ish-core/utils/dev/ngrx-testing';
 
 import {
-  LoadCompanyUserSuccess,
-  LoadUserPaymentMethods,
-  LoadUserPaymentMethodsSuccess,
-  LoginUserFail,
-  LoginUserSuccess,
-  RequestPasswordReminder,
-  RequestPasswordReminderFail,
-  RequestPasswordReminderSuccess,
-  UpdateUserPassword,
+  loadCompanyUserSuccess,
+  loadUserPaymentMethods,
+  loadUserPaymentMethodsSuccess,
+  loginUserFail,
+  loginUserSuccess,
+  requestPasswordReminder,
+  requestPasswordReminderFail,
+  requestPasswordReminderSuccess,
+  updateUserPassword,
 } from './user.actions';
 import {
   getLoggedInCustomer,
@@ -46,7 +46,7 @@ describe('User Selectors', () => {
     });
 
     store$ = TestBed.inject(StoreWithSnapshots);
-    store$.dispatch(new LoadProductSuccess({ product: { sku: 'sku' } as Product }));
+    store$.dispatch(loadProductSuccess({ payload: { product: { sku: 'sku' } as Product } }));
   });
 
   it('should select no customer/user when no event was sent', () => {
@@ -62,12 +62,14 @@ describe('User Selectors', () => {
   it('should select the customer when logging in successfully', () => {
     const customerNo = 'PC';
     store$.dispatch(
-      new LoginUserSuccess({
-        customer: {
-          type: 'SMBCustomer',
-          customerNo,
-        },
-      } as CustomerUserType)
+      loginUserSuccess({
+        payload: {
+          customer: {
+            type: 'SMBCustomer',
+            customerNo,
+          },
+        } as CustomerUserType,
+      })
     );
 
     expect(getLoggedInCustomer(store$.state)).toHaveProperty('customerNo', customerNo);
@@ -82,16 +84,18 @@ describe('User Selectors', () => {
     const customerNo = 'PC';
     const type = 'PrivateCustomer';
     store$.dispatch(
-      new LoginUserSuccess({
-        customer: {
-          type,
-          customerNo,
-          isBusinessCustomer: false,
-        },
-        user: {
-          firstName,
-        },
-      } as CustomerUserType)
+      loginUserSuccess({
+        payload: {
+          customer: {
+            type,
+            customerNo,
+            isBusinessCustomer: false,
+          },
+          user: {
+            firstName,
+          },
+        } as CustomerUserType,
+      })
     );
 
     expect(getLoggedInCustomer(store$.state)).toHaveProperty('customerNo', customerNo);
@@ -105,13 +109,15 @@ describe('User Selectors', () => {
 
   it('should not select the user when logging in as company customer successfully', () => {
     store$.dispatch(
-      new LoginUserSuccess({
-        customer: {
-          type: 'SMBCustomer',
-          customerNo: 'PC',
-          isBusinessCustomer: true,
-        },
-      } as CustomerUserType)
+      loginUserSuccess({
+        payload: {
+          customer: {
+            type: 'SMBCustomer',
+            customerNo: 'PC',
+            isBusinessCustomer: true,
+          },
+        } as CustomerUserType,
+      })
     );
 
     expect(getLoggedInCustomer(store$.state)).toBeTruthy();
@@ -123,7 +129,7 @@ describe('User Selectors', () => {
 
   it('should select the user when load company user is successful', () => {
     const firstName = 'test';
-    store$.dispatch(new LoadCompanyUserSuccess({ user: { firstName } as User }));
+    store$.dispatch(loadCompanyUserSuccess({ payload: { user: { firstName } as User } }));
 
     expect(getLoggedInCustomer(store$.state)).toBeUndefined();
     expect(getLoggedInUser(store$.state)).toHaveProperty('firstName', firstName);
@@ -133,7 +139,7 @@ describe('User Selectors', () => {
 
   it('should select no customer and an error when an error event was sent', () => {
     const error = { status: 401, headers: { 'error-key': 'dummy' } as HttpHeader } as HttpError;
-    store$.dispatch(new LoginUserFail({ error }));
+    store$.dispatch(loginUserFail({ payload: { error } }));
 
     expect(getLoggedInCustomer(store$.state)).toBeUndefined();
     expect(getLoggedInUser(store$.state)).toBeUndefined();
@@ -146,14 +152,14 @@ describe('User Selectors', () => {
 
   describe('loading payment methods', () => {
     beforeEach(() => {
-      store$.dispatch(new LoadUserPaymentMethods());
+      store$.dispatch(loadUserPaymentMethods());
     });
     it('should set the state to loading', () => {
       expect(getUserLoading(store$.state)).toBeTrue();
     });
     it('should select  payment methods when the user has saved payment instruments', () => {
       store$.dispatch(
-        new LoadUserPaymentMethodsSuccess({ paymentMethods: [{ id: 'ISH_CREDITCARD' } as PaymentMethod] })
+        loadUserPaymentMethodsSuccess({ payload: { paymentMethods: [{ id: 'ISH_CREDITCARD' } as PaymentMethod] } })
       );
 
       expect(getUserPaymentMethods(store$.state)).toHaveLength(1);
@@ -162,7 +168,7 @@ describe('User Selectors', () => {
   });
 
   it('should select loading when the user starts to update his password', () => {
-    store$.dispatch(new UpdateUserPassword({ password: '123', currentPassword: '1234' }));
+    store$.dispatch(updateUserPassword({ payload: { password: '123', currentPassword: '1234' } }));
 
     expect(getUserLoading(store$.state)).toBeTrue();
   });
@@ -178,7 +184,7 @@ describe('User Selectors', () => {
       firstName: 'Patricia',
       lastName: 'Miller',
     };
-    store$.dispatch(new RequestPasswordReminder({ data }));
+    store$.dispatch(requestPasswordReminder({ payload: { data } }));
 
     expect(getPasswordReminderError(store$.state)).toBeUndefined();
     expect(getPasswordReminderSuccess(store$.state)).toBeUndefined();
@@ -186,7 +192,7 @@ describe('User Selectors', () => {
   });
 
   it('should success on RequestPasswordReminderSuccess action', () => {
-    store$.dispatch(new RequestPasswordReminderSuccess());
+    store$.dispatch(requestPasswordReminderSuccess());
     expect(getPasswordReminderError(store$.state)).toBeUndefined();
     expect(getPasswordReminderSuccess(store$.state)).toBeTrue();
     expect(getUserLoading(store$.state)).toBeFalse();
@@ -194,7 +200,7 @@ describe('User Selectors', () => {
 
   it('should have error on PasswordReminderFail action', () => {
     const error = { message: 'invalid' } as HttpError;
-    store$.dispatch(new RequestPasswordReminderFail({ error }));
+    store$.dispatch(requestPasswordReminderFail({ payload: { error } }));
     expect(getPasswordReminderError(store$.state)).toMatchObject(error);
     expect(getPasswordReminderSuccess(store$.state)).toBeFalse();
     expect(getUserLoading(store$.state)).toBeFalse();
@@ -208,7 +214,7 @@ describe('User Selectors', () => {
         ['net', { isBusinessCustomer: true } as Customer],
       ])('should be "%s" for user %o', (expected, customer: Customer) => {
         if (customer) {
-          store$.dispatch(new LoginUserSuccess({ customer }));
+          store$.dispatch(loginUserSuccess({ payload: { customer } }));
         }
         expect(getPriceDisplayType(store$.state)).toEqual(expected);
       });
@@ -217,12 +223,14 @@ describe('User Selectors', () => {
     describe('B2C', () => {
       beforeEach(() => {
         store$.dispatch(
-          new ApplyConfiguration({
-            _serverConfig: {
-              pricing: {
-                defaultCustomerTypeForPriceDisplay: 'PRIVATE',
-                privateCustomerPriceDisplayType: 'gross',
-                smbCustomerPriceDisplayType: 'net',
+          applyConfiguration({
+            payload: {
+              _serverConfig: {
+                pricing: {
+                  defaultCustomerTypeForPriceDisplay: 'PRIVATE',
+                  privateCustomerPriceDisplayType: 'gross',
+                  smbCustomerPriceDisplayType: 'net',
+                },
               },
             },
           })
@@ -235,7 +243,7 @@ describe('User Selectors', () => {
         ['net', { isBusinessCustomer: true } as Customer],
       ])('should be "%s" for user %o', (expected, customer: Customer) => {
         if (customer) {
-          store$.dispatch(new LoginUserSuccess({ customer }));
+          store$.dispatch(loginUserSuccess({ payload: { customer } }));
         }
         expect(getPriceDisplayType(store$.state)).toEqual(expected);
       });
@@ -244,12 +252,14 @@ describe('User Selectors', () => {
     describe('B2B', () => {
       beforeEach(() => {
         store$.dispatch(
-          new ApplyConfiguration({
-            _serverConfig: {
-              pricing: {
-                defaultCustomerTypeForPriceDisplay: 'SMB',
-                privateCustomerPriceDisplayType: 'gross',
-                smbCustomerPriceDisplayType: 'net',
+          applyConfiguration({
+            payload: {
+              _serverConfig: {
+                pricing: {
+                  defaultCustomerTypeForPriceDisplay: 'SMB',
+                  privateCustomerPriceDisplayType: 'gross',
+                  smbCustomerPriceDisplayType: 'net',
+                },
               },
             },
           })
@@ -262,7 +272,7 @@ describe('User Selectors', () => {
         ['net', { isBusinessCustomer: true } as Customer],
       ])('should be "%s" for user %o', (expected, customer: Customer) => {
         if (customer) {
-          store$.dispatch(new LoginUserSuccess({ customer }));
+          store$.dispatch(loginUserSuccess({ payload: { customer } }));
         }
         expect(getPriceDisplayType(store$.state)).toEqual(expected);
       });

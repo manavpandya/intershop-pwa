@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Action } from '@ngrx/store';
+import { createAction, props } from '@ngrx/store';
 import { cold, hot } from 'jest-marbles';
 import { of } from 'rxjs';
 
@@ -27,10 +27,7 @@ describe('Operators', () => {
   });
 
   describe('mapErrorToAction', () => {
-    class DummyFail implements Action {
-      type = 'dummy';
-      constructor(public payload: { error: HttpError }) {}
-    }
+    const dummyFail = createAction('dummy', props<{ payload: { error: HttpError } }>());
 
     it('should catch HttpErrorResponses and convert them to Fail actions', () => {
       const error = new HttpErrorResponse({
@@ -59,7 +56,7 @@ describe('Operators', () => {
         },
       });
 
-      expect(input$.pipe(mapErrorToAction(DummyFail))).toBeObservable(resu$);
+      expect(input$.pipe(mapErrorToAction(dummyFail))).toBeObservable(resu$);
     });
   });
 

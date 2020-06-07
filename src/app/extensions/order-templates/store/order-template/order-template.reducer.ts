@@ -1,10 +1,30 @@
 import { EntityState, createEntityAdapter } from '@ngrx/entity';
+import { createReducer, on } from '@ngrx/store';
 
 import { HttpError } from 'ish-core/models/http-error/http-error.model';
 
 import { OrderTemplate } from '../../models/order-template/order-template.model';
 
-import { OrderTemplateAction, OrderTemplatesActionTypes } from './order-template.actions';
+import {
+  addBasketToNewOrderTemplate,
+  addBasketToNewOrderTemplateFail,
+  addBasketToNewOrderTemplateSuccess,
+  addProductToOrderTemplateSuccess,
+  createOrderTemplate,
+  createOrderTemplateFail,
+  createOrderTemplateSuccess,
+  deleteOrderTemplate,
+  deleteOrderTemplateFail,
+  deleteOrderTemplateSuccess,
+  loadOrderTemplates,
+  loadOrderTemplatesFail,
+  loadOrderTemplatesSuccess,
+  removeItemFromOrderTemplateSuccess,
+  selectOrderTemplate,
+  updateOrderTemplate,
+  updateOrderTemplateFail,
+  updateOrderTemplateSuccess,
+} from './order-template.actions';
 
 export interface OrderTemplateState extends EntityState<OrderTemplate> {
   loading: boolean;
@@ -21,24 +41,26 @@ export const initialState: OrderTemplateState = orderTemplateAdapter.getInitialS
   selected: undefined,
   error: undefined,
 });
-
-export function orderTemplateReducer(state = initialState, action: OrderTemplateAction): OrderTemplateState {
-  switch (action.type) {
-    case OrderTemplatesActionTypes.LoadOrderTemplates:
-    case OrderTemplatesActionTypes.CreateOrderTemplate:
-    case OrderTemplatesActionTypes.AddBasketToNewOrderTemplate:
-    case OrderTemplatesActionTypes.DeleteOrderTemplate:
-    case OrderTemplatesActionTypes.UpdateOrderTemplate: {
-      return {
-        ...state,
-        loading: true,
-      };
-    }
-    case OrderTemplatesActionTypes.LoadOrderTemplatesFail:
-    case OrderTemplatesActionTypes.DeleteOrderTemplateFail:
-    case OrderTemplatesActionTypes.CreateOrderTemplateFail:
-    case OrderTemplatesActionTypes.AddBasketToNewOrderTemplateFail:
-    case OrderTemplatesActionTypes.UpdateOrderTemplateFail: {
+export const orderTemplateReducer = createReducer(
+  initialState,
+  on(
+    updateOrderTemplate,
+    loadOrderTemplates,
+    createOrderTemplate,
+    addBasketToNewOrderTemplate,
+    deleteOrderTemplate,
+    state => ({
+      ...state,
+      loading: true,
+    })
+  ),
+  on(
+    updateOrderTemplateFail,
+    loadOrderTemplatesFail,
+    deleteOrderTemplateFail,
+    createOrderTemplateFail,
+    addBasketToNewOrderTemplateFail,
+    (state, action) => {
       const { error } = action.payload;
       return {
         ...state,
@@ -47,19 +69,21 @@ export function orderTemplateReducer(state = initialState, action: OrderTemplate
         selected: undefined,
       };
     }
-
-    case OrderTemplatesActionTypes.LoadOrderTemplatesSuccess: {
-      const { orderTemplates } = action.payload;
-      return orderTemplateAdapter.setAll(orderTemplates, {
-        ...state,
-        loading: false,
-      });
-    }
-    case OrderTemplatesActionTypes.AddBasketToNewOrderTemplateSuccess:
-    case OrderTemplatesActionTypes.CreateOrderTemplateSuccess:
-    case OrderTemplatesActionTypes.UpdateOrderTemplateSuccess:
-    case OrderTemplatesActionTypes.AddProductToOrderTemplateSuccess:
-    case OrderTemplatesActionTypes.RemoveItemFromOrderTemplateSuccess: {
+  ),
+  on(loadOrderTemplatesSuccess, (state, action) => {
+    const { orderTemplates } = action.payload;
+    return orderTemplateAdapter.setAll(orderTemplates, {
+      ...state,
+      loading: false,
+    });
+  }),
+  on(
+    removeItemFromOrderTemplateSuccess,
+    addBasketToNewOrderTemplateSuccess,
+    createOrderTemplateSuccess,
+    updateOrderTemplateSuccess,
+    addProductToOrderTemplateSuccess,
+    (state, action) => {
       const { orderTemplate } = action.payload;
 
       return orderTemplateAdapter.upsertOne(orderTemplate, {
@@ -67,23 +91,19 @@ export function orderTemplateReducer(state = initialState, action: OrderTemplate
         loading: false,
       });
     }
-
-    case OrderTemplatesActionTypes.DeleteOrderTemplateSuccess: {
-      const { orderTemplateId } = action.payload;
-      return orderTemplateAdapter.removeOne(orderTemplateId, {
-        ...state,
-        loading: false,
-      });
-    }
-
-    case OrderTemplatesActionTypes.SelectOrderTemplate: {
-      const { id } = action.payload;
-      return {
-        ...state,
-        selected: id,
-      };
-    }
-  }
-
-  return state;
-}
+  ),
+  on(deleteOrderTemplateSuccess, (state, action) => {
+    const { orderTemplateId } = action.payload;
+    return orderTemplateAdapter.removeOne(orderTemplateId, {
+      ...state,
+      loading: false,
+    });
+  }),
+  on(selectOrderTemplate, (state, action) => {
+    const { id } = action.payload;
+    return {
+      ...state,
+      selected: id,
+    };
+  })
+);

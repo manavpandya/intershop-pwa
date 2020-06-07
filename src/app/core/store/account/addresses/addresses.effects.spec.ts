@@ -10,19 +10,19 @@ import { Customer } from 'ish-core/models/customer/customer.model';
 import { HttpError } from 'ish-core/models/http-error/http-error.model';
 import { AddressService } from 'ish-core/services/address/address.service';
 import { AccountStoreModule } from 'ish-core/store/account/account-store.module';
-import { LoginUserSuccess } from 'ish-core/store/account/user';
+import { loginUserSuccess } from 'ish-core/store/account/user';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
-import { DisplaySuccessMessage } from 'ish-core/store/core/messages';
+import { displaySuccessMessage } from 'ish-core/store/core/messages';
 
 import {
-  CreateCustomerAddress,
-  CreateCustomerAddressFail,
-  CreateCustomerAddressSuccess,
-  DeleteCustomerAddress,
-  DeleteCustomerAddressFail,
-  DeleteCustomerAddressSuccess,
-  LoadAddresses,
-  LoadAddressesSuccess,
+  createCustomerAddress,
+  createCustomerAddressFail,
+  createCustomerAddressSuccess,
+  deleteCustomerAddress,
+  deleteCustomerAddressFail,
+  deleteCustomerAddressSuccess,
+  loadAddresses,
+  loadAddressesSuccess,
 } from './addresses.actions';
 import { AddressesEffects } from './addresses.effects';
 
@@ -51,12 +51,12 @@ describe('Addresses Effects', () => {
     effects = TestBed.inject(AddressesEffects);
     store$ = TestBed.inject(Store);
     const customer = { customerNo: 'patricia' } as Customer;
-    store$.dispatch(new LoginUserSuccess({ customer }));
+    store$.dispatch(loginUserSuccess({ payload: { customer } }));
   });
 
   describe('loadAddresses$', () => {
     it('should call the addressService for loadAddresses', done => {
-      const action = new LoadAddresses();
+      const action = loadAddresses();
       actions$ = of(action);
 
       effects.loadAddresses$.subscribe(() => {
@@ -66,8 +66,8 @@ describe('Addresses Effects', () => {
     });
 
     it('should map to action of type LoadAddressesSuccess', () => {
-      const action = new LoadAddresses();
-      const completion = new LoadAddressesSuccess({ addresses: [{ urn: 'test' } as Address] });
+      const action = loadAddresses();
+      const completion = loadAddressesSuccess({ payload: { addresses: [{ urn: 'test' } as Address] } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -78,7 +78,7 @@ describe('Addresses Effects', () => {
   describe('createCustomerAddress$', () => {
     it('should call the addressService for createCustomerAddress', done => {
       const address = { urn: '123' } as Address;
-      const action = new CreateCustomerAddress({ address });
+      const action = createCustomerAddress({ payload: { address } });
       actions$ = of(action);
 
       effects.createCustomerAddress$.subscribe(() => {
@@ -89,10 +89,12 @@ describe('Addresses Effects', () => {
 
     it('should map to action of type CreateCustomerSuccess', () => {
       const address = { urn: '123' } as Address;
-      const action = new CreateCustomerAddress({ address });
-      const completion = new CreateCustomerAddressSuccess({ address: { urn: 'test' } as Address });
-      const completion2 = new DisplaySuccessMessage({
-        message: 'account.addresses.new_address_created.message',
+      const action = createCustomerAddress({ payload: { address } });
+      const completion = createCustomerAddressSuccess({ payload: { address: { urn: 'test' } as Address } });
+      const completion2 = displaySuccessMessage({
+        payload: {
+          message: 'account.addresses.new_address_created.message',
+        },
       });
 
       actions$ = hot('-a----a----a----|', { a: action });
@@ -106,9 +108,9 @@ describe('Addresses Effects', () => {
         throwError({ message: 'invalid' })
       );
       const address = { urn: '123' } as Address;
-      const action = new CreateCustomerAddress({ address });
+      const action = createCustomerAddress({ payload: { address } });
       const error = { message: 'invalid' } as HttpError;
-      const completion = new CreateCustomerAddressFail({ error });
+      const completion = createCustomerAddressFail({ payload: { error } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -119,7 +121,7 @@ describe('Addresses Effects', () => {
   describe('deleteCustomerAddress$', () => {
     it('should call the addressService for deleteCustomerAddress', done => {
       const addressId = '123';
-      const action = new DeleteCustomerAddress({ addressId });
+      const action = deleteCustomerAddress({ payload: { addressId } });
       actions$ = of(action);
 
       effects.deleteCustomerAddress$.subscribe(() => {
@@ -130,10 +132,12 @@ describe('Addresses Effects', () => {
 
     it('should map to action of type DeleteCustomerSuccess', () => {
       const addressId = '123';
-      const action = new DeleteCustomerAddress({ addressId });
-      const completion = new DeleteCustomerAddressSuccess({ addressId });
-      const completion2 = new DisplaySuccessMessage({
-        message: 'account.addresses.new_address_deleted.message',
+      const action = deleteCustomerAddress({ payload: { addressId } });
+      const completion = deleteCustomerAddressSuccess({ payload: { addressId } });
+      const completion2 = displaySuccessMessage({
+        payload: {
+          message: 'account.addresses.new_address_deleted.message',
+        },
       });
       actions$ = hot('-a----a----a----|', { a: action });
       const expected$ = cold('-(cd)-(cd)-(cd)-|', { c: completion, d: completion2 });
@@ -146,9 +150,9 @@ describe('Addresses Effects', () => {
         throwError({ message: 'invalid' })
       );
       const addressId = '123';
-      const action = new DeleteCustomerAddress({ addressId });
+      const action = deleteCustomerAddress({ payload: { addressId } });
       const error = { message: 'invalid' } as HttpError;
-      const completion = new DeleteCustomerAddressFail({ error });
+      const completion = deleteCustomerAddressFail({ payload: { error } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 

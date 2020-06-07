@@ -4,7 +4,7 @@ import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { UserActionTypes } from 'ish-core/store/account/user';
+import { logoutUser } from 'ish-core/store/account/user';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
 import { StoreWithSnapshots, containsActionWithType, provideStoreSnapshots } from 'ish-core/utils/dev/ngrx-testing';
 
@@ -41,7 +41,7 @@ describe('Logout Guard', () => {
     router.navigateByUrl('/any');
     tick(500);
 
-    expect(store$.actionsArray()).toSatisfy(containsActionWithType(UserActionTypes.LogoutUser));
+    expect(store$.actionsArray()).toSatisfy(containsActionWithType(logoutUser.type));
   }));
 
   it('should redirect to /home when called', fakeAsync(() => {

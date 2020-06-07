@@ -17,26 +17,26 @@ import { Order } from 'ish-core/models/order/order.model';
 import { User } from 'ish-core/models/user/user.model';
 import { OrderService } from 'ish-core/services/order/order.service';
 import { AccountStoreModule } from 'ish-core/store/account/account-store.module';
-import { ContinueCheckoutWithIssues, LoadBasket } from 'ish-core/store/account/basket';
-import { LoginUserSuccess } from 'ish-core/store/account/user';
+import { continueCheckoutWithIssues, loadBasket } from 'ish-core/store/account/basket';
+import { loginUserSuccess } from 'ish-core/store/account/user';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
 import { ShoppingStoreModule } from 'ish-core/store/shopping/shopping-store.module';
 import { BasketMockData } from 'ish-core/utils/dev/basket-mock-data';
 
 import {
-  CreateOrder,
-  CreateOrderFail,
-  CreateOrderSuccess,
-  LoadOrder,
-  LoadOrderByAPIToken,
-  LoadOrderFail,
-  LoadOrderSuccess,
-  LoadOrders,
-  LoadOrdersFail,
-  LoadOrdersSuccess,
-  SelectOrder,
-  SelectOrderAfterRedirect,
-  SelectOrderAfterRedirectFail,
+  createOrder,
+  createOrderFail,
+  createOrderSuccess,
+  loadOrder,
+  loadOrderByAPIToken,
+  loadOrderFail,
+  loadOrderSuccess,
+  loadOrders,
+  loadOrdersFail,
+  loadOrdersSuccess,
+  selectOrder,
+  selectOrderAfterRedirect,
+  selectOrderAfterRedirectFail,
 } from './orders.actions';
 import { OrdersEffects } from './orders.effects';
 
@@ -96,7 +96,7 @@ describe('Orders Effects', () => {
     it('should call the orderService for createOrder', done => {
       when(orderServiceMock.createOrder(anything(), anything())).thenReturn(of(undefined));
       const payload = BasketMockData.getBasket().id;
-      const action = new CreateOrder({ basketId: payload });
+      const action = createOrder({ payload: { basketId: payload } });
       actions$ = of(action);
 
       effects.createOrder$.subscribe(() => {
@@ -111,8 +111,8 @@ describe('Orders Effects', () => {
       );
       const basketId = BasketMockData.getBasket().id;
       const newOrder = { id: basketId } as Order;
-      const action = new CreateOrder({ basketId });
-      const completion = new CreateOrderSuccess({ order: newOrder });
+      const action = createOrder({ payload: { basketId } });
+      const completion = createOrderSuccess({ payload: { order: newOrder } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -122,8 +122,8 @@ describe('Orders Effects', () => {
     it('should map an invalid request to action of type CreateOrderFail', () => {
       when(orderServiceMock.createOrder(anything(), anything())).thenReturn(throwError({ message: 'invalid' }));
       const basketId = BasketMockData.getBasket().id;
-      const action = new CreateOrder({ basketId });
-      const completion = new CreateOrderFail({ error: { message: 'invalid' } as HttpError });
+      const action = createOrder({ payload: { basketId } });
+      const completion = createOrderFail({ payload: { error: { message: 'invalid' } as HttpError } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -133,7 +133,7 @@ describe('Orders Effects', () => {
 
   describe('continueAfterOrderCreation', () => {
     it('should navigate to /checkout/receipt after CreateOrderSuccess if there is no redirect required', fakeAsync(() => {
-      const action = new CreateOrderSuccess({ order: { id: '123' } as Order });
+      const action = createOrderSuccess({ payload: { order: { id: '123' } as Order } });
       actions$ = of(action);
 
       effects.continueAfterOrderCreation$.subscribe(noop, fail, noop);
@@ -150,11 +150,13 @@ describe('Orders Effects', () => {
         writable: true,
       });
 
-      const action = new CreateOrderSuccess({
-        order: {
-          id: '123',
-          orderCreation: { status: 'STOPPED', stopAction: { type: 'Redirect', redirectUrl: 'http://test' } },
-        } as Order,
+      const action = createOrderSuccess({
+        payload: {
+          order: {
+            id: '123',
+            orderCreation: { status: 'STOPPED', stopAction: { type: 'Redirect', redirectUrl: 'http://test' } },
+          } as Order,
+        },
       });
       actions$ = of(action);
 
@@ -168,24 +170,28 @@ describe('Orders Effects', () => {
 
   describe('rollbackAfterOrderCreation', () => {
     it('should navigate to /checkout/payment after CreateOrderSuccess if order creation was rolled back', () => {
-      const action = new CreateOrderSuccess({
-        order: {
-          id: '123',
-          orderCreation: { status: 'ROLLED_BACK' },
-          infos: [{ message: 'Info' }],
-        } as Order,
+      const action = createOrderSuccess({
+        payload: {
+          order: {
+            id: '123',
+            orderCreation: { status: 'ROLLED_BACK' },
+            infos: [{ message: 'Info' }],
+          } as Order,
+        },
       });
       actions$ = of(action);
 
-      const completion1 = new LoadBasket();
-      const completion2 = new ContinueCheckoutWithIssues({
-        targetRoute: undefined,
-        basketValidation: {
-          basket: undefined,
-          results: {
-            valid: false,
-            adjusted: false,
-            errors: [{ message: 'Info' } as BasketFeedback],
+      const completion1 = loadBasket();
+      const completion2 = continueCheckoutWithIssues({
+        payload: {
+          targetRoute: undefined,
+          basketValidation: {
+            basket: undefined,
+            results: {
+              valid: false,
+              adjusted: false,
+              errors: [{ message: 'Info' } as BasketFeedback],
+            },
           },
         },
       });
@@ -198,7 +204,7 @@ describe('Orders Effects', () => {
 
   describe('loadOrders$', () => {
     it('should call the orderService for loadOrders', done => {
-      const action = new LoadOrders();
+      const action = loadOrders();
       actions$ = of(action);
 
       effects.loadOrders$.subscribe(() => {
@@ -208,8 +214,8 @@ describe('Orders Effects', () => {
     });
 
     it('should load all orders of a user and dispatch a LoadOrdersSuccess action', () => {
-      const action = new LoadOrders();
-      const completion = new LoadOrdersSuccess({ orders });
+      const action = loadOrders();
+      const completion = loadOrdersSuccess({ payload: { orders } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -219,8 +225,8 @@ describe('Orders Effects', () => {
     it('should dispatch a LoadOrdersFail action if a load error occurs', () => {
       when(orderServiceMock.getOrders()).thenReturn(throwError({ message: 'error' }));
 
-      const action = new LoadOrders();
-      const completion = new LoadOrdersFail({ error: { message: 'error' } as HttpError });
+      const action = loadOrders();
+      const completion = loadOrdersFail({ payload: { error: { message: 'error' } as HttpError } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -230,7 +236,7 @@ describe('Orders Effects', () => {
 
   describe('loadOrder$', () => {
     it('should call the orderService for loadOrder', done => {
-      const action = new LoadOrder({ orderId: order.id });
+      const action = loadOrder({ payload: { orderId: order.id } });
       actions$ = of(action);
 
       effects.loadOrder$.subscribe(() => {
@@ -240,8 +246,8 @@ describe('Orders Effects', () => {
     });
 
     it('should load an order of a user and dispatch a LoadOrderSuccess action', () => {
-      const action = new LoadOrder({ orderId: order.id });
-      const completion = new LoadOrderSuccess({ order });
+      const action = loadOrder({ payload: { orderId: order.id } });
+      const completion = loadOrderSuccess({ payload: { order } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -251,8 +257,8 @@ describe('Orders Effects', () => {
     it('should dispatch a LoadOrderFail action if a load error occurs', () => {
       when(orderServiceMock.getOrder(anyString())).thenReturn(throwError({ message: 'error' }));
 
-      const action = new LoadOrder({ orderId: order.id });
-      const completion = new LoadOrderFail({ error: { message: 'error' } as HttpError });
+      const action = loadOrder({ payload: { orderId: order.id } });
+      const completion = loadOrderFail({ payload: { error: { message: 'error' } as HttpError } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -262,7 +268,7 @@ describe('Orders Effects', () => {
 
   describe('loadOrderByApiToken$', () => {
     it('should call the orderService for LoadOrderByAPIToken', done => {
-      const action = new LoadOrderByAPIToken({ apiToken: 'dummy', orderId: order.id });
+      const action = loadOrderByAPIToken({ payload: { apiToken: 'dummy', orderId: order.id } });
       actions$ = of(action);
 
       effects.loadOrderByAPIToken$.subscribe(() => {
@@ -272,8 +278,8 @@ describe('Orders Effects', () => {
     });
 
     it('should load an order of a user and dispatch a LoadOrderSuccess action', () => {
-      const action = new LoadOrderByAPIToken({ apiToken: 'dummy', orderId: order.id });
-      const completion = new LoadOrderSuccess({ order });
+      const action = loadOrderByAPIToken({ payload: { apiToken: 'dummy', orderId: order.id } });
+      const completion = loadOrderSuccess({ payload: { order } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -283,8 +289,8 @@ describe('Orders Effects', () => {
     it('should dispatch a LoadOrderFail action if a load error occurs', () => {
       when(orderServiceMock.getOrderByToken(anyString(), anyString())).thenReturn(throwError({ message: 'error' }));
 
-      const action = new LoadOrderByAPIToken({ apiToken: 'dummy', orderId: order.id });
-      const completion = new LoadOrderFail({ error: { message: 'error' } as HttpError });
+      const action = loadOrderByAPIToken({ payload: { apiToken: 'dummy', orderId: order.id } });
+      const completion = loadOrderFail({ payload: { error: { message: 'error' } as HttpError } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -295,8 +301,8 @@ describe('Orders Effects', () => {
   describe('loadOrderForSelectedOrder$', () => {
     it('should fire LoadOrder if an order is selected that is not yet loaded', () => {
       const orderId = '123';
-      const action = new SelectOrder({ orderId });
-      const completion = new LoadOrder({ orderId });
+      const action = selectOrder({ payload: { orderId } });
+      const completion = loadOrder({ payload: { orderId } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -340,7 +346,7 @@ describe('Orders Effects', () => {
     it('should trigger SelectOrderAfterRedirect action if checkout payment/receipt page is called with query param "redirect" and a user is logged in', done => {
       const customer = { customerNo: 'patricia' } as Customer;
       const user = { firstName: 'patricia' } as User;
-      store$.dispatch(new LoginUserSuccess({ customer, user }));
+      store$.dispatch(loginUserSuccess({ payload: { customer, user } }));
 
       router.navigate(['checkout', 'receipt'], {
         queryParams: { redirect: 'success', param1: 123, orderId: order.id },
@@ -356,7 +362,7 @@ describe('Orders Effects', () => {
     });
 
     it('should trigger SelectOrderAfterRedirect action if checkout payment/receipt page is called with query param "redirect" and an order is available', done => {
-      store$.dispatch(new CreateOrderSuccess({ order }));
+      store$.dispatch(createOrderSuccess({ payload: { order } }));
 
       router.navigate(['checkout', 'receipt'], {
         queryParams: { redirect: 'success', param1: 123, orderId: order.id },
@@ -377,7 +383,7 @@ describe('Orders Effects', () => {
       when(orderServiceMock.updateOrderPayment(order.id, anything())).thenReturn(of(undefined));
       const params = { redirect: 'success', param1: 123, orderId: order.id };
 
-      const action = new SelectOrderAfterRedirect({ params });
+      const action = selectOrderAfterRedirect({ payload: { params } });
       actions$ = of(action);
 
       effects.selectOrderAfterRedirect$.subscribe(() => {
@@ -390,8 +396,8 @@ describe('Orders Effects', () => {
       when(orderServiceMock.updateOrderPayment(order.id, anything())).thenReturn(of(order.id));
       const params = { redirect: 'success', param1: 123, orderId: order.id };
 
-      const action = new SelectOrderAfterRedirect({ params });
-      const completion = new SelectOrder({ orderId: order.id });
+      const action = selectOrderAfterRedirect({ payload: { params } });
+      const completion = selectOrder({ payload: { orderId: order.id } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -402,8 +408,8 @@ describe('Orders Effects', () => {
       when(orderServiceMock.updateOrderPayment(order.id, anything())).thenReturn(of(order.id));
       const params = { redirect: 'cancel', param1: 123, orderId: order.id };
 
-      const action = new SelectOrderAfterRedirect({ params });
-      const completion = new LoadBasket();
+      const action = selectOrderAfterRedirect({ payload: { params } });
+      const completion = loadBasket();
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -414,8 +420,8 @@ describe('Orders Effects', () => {
       when(orderServiceMock.updateOrderPayment(order.id, anything())).thenReturn(throwError({ message: 'invalid' }));
       const params = { redirect: 'success', param1: 123, orderId: order.id };
 
-      const action = new SelectOrderAfterRedirect({ params });
-      const completion = new SelectOrderAfterRedirectFail({ error: { message: 'invalid' } as HttpError });
+      const action = selectOrderAfterRedirect({ payload: { params } });
+      const completion = selectOrderAfterRedirectFail({ payload: { error: { message: 'invalid' } as HttpError } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -425,7 +431,7 @@ describe('Orders Effects', () => {
 
   describe('selectOrderAfterRedirectFailed', () => {
     it('should navigate to /checkout/payment if order creation failed after redirect', fakeAsync(() => {
-      const action = new SelectOrderAfterRedirectFail(undefined);
+      const action = selectOrderAfterRedirectFail({ payload: undefined });
       actions$ = of(action);
 
       effects.selectOrderAfterRedirectFailed$.subscribe(noop, fail, noop);
@@ -436,8 +442,8 @@ describe('Orders Effects', () => {
     }));
 
     it('should map to action of type LoadBasket', () => {
-      const action = new SelectOrderAfterRedirectFail(undefined);
-      const completion = new LoadBasket();
+      const action = selectOrderAfterRedirectFail({ payload: undefined });
+      const completion = loadBasket();
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
 
@@ -447,8 +453,8 @@ describe('Orders Effects', () => {
 
   describe('setOrderBreadcrumb$', () => {
     beforeEach(() => {
-      store$.dispatch(new LoadOrdersSuccess({ orders }));
-      store$.dispatch(new SelectOrder({ orderId: orders[0].id }));
+      store$.dispatch(loadOrdersSuccess({ payload: { orders } }));
+      store$.dispatch(selectOrder({ payload: { orderId: orders[0].id } }));
     });
 
     it('should set the breadcrumb of the selected order', done => {

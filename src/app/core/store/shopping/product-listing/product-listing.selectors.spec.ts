@@ -6,7 +6,7 @@ import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
 import { ShoppingStoreModule } from 'ish-core/store/shopping/shopping-store.module';
 import { StoreWithSnapshots, provideStoreSnapshots } from 'ish-core/utils/dev/ngrx-testing';
 
-import { SetProductListingPageSize, SetProductListingPages } from './product-listing.actions';
+import { setProductListingPageSize, setProductListingPages } from './product-listing.actions';
 import { getProductListingLoading, getProductListingView } from './product-listing.selectors';
 
 describe('Product Listing Selectors', () => {
@@ -72,13 +72,15 @@ describe('Product Listing Selectors', () => {
 
   describe('when first page was added', () => {
     beforeEach(() => {
-      store$.dispatch(new SetProductListingPageSize({ itemsPerPage: 2 }));
+      store$.dispatch(setProductListingPageSize({ payload: { itemsPerPage: 2 } }));
       store$.dispatch(
-        new SetProductListingPages({
-          id: TEST_ID,
-          itemCount: 4,
-          sortKeys: ['by-name', 'by-date'],
-          1: ['A', 'B'],
+        setProductListingPages({
+          payload: {
+            id: TEST_ID,
+            itemCount: 4,
+            sortKeys: ['by-name', 'by-date'],
+            1: ['A', 'B'],
+          },
         })
       );
     });
@@ -118,11 +120,13 @@ describe('Product Listing Selectors', () => {
     describe('when second (last) page was added', () => {
       beforeEach(() => {
         store$.dispatch(
-          new SetProductListingPages({
-            id: TEST_ID,
-            itemCount: 4,
-            sortKeys: ['by-name', 'by-date'],
-            2: ['C', 'D'],
+          setProductListingPages({
+            payload: {
+              id: TEST_ID,
+              itemCount: 4,
+              sortKeys: ['by-name', 'by-date'],
+              2: ['C', 'D'],
+            },
           })
         );
       });
@@ -168,13 +172,15 @@ describe('Product Listing Selectors', () => {
 
   describe('when any page was added', () => {
     beforeEach(() => {
-      store$.dispatch(new SetProductListingPageSize({ itemsPerPage: 2 }));
+      store$.dispatch(setProductListingPageSize({ payload: { itemsPerPage: 2 } }));
       store$.dispatch(
-        new SetProductListingPages({
-          id: TEST_ID,
-          itemCount: 6,
-          sortKeys: ['by-name', 'by-date'],
-          2: ['C', 'D'],
+        setProductListingPages({
+          payload: {
+            id: TEST_ID,
+            itemCount: 6,
+            sortKeys: ['by-name', 'by-date'],
+            2: ['C', 'D'],
+          },
         })
       );
     });
@@ -217,13 +223,15 @@ describe('Product Listing Selectors', () => {
     let view: ProductListingView;
 
     beforeEach(() => {
-      store$.dispatch(new SetProductListingPageSize({ itemsPerPage: 2 }));
+      store$.dispatch(setProductListingPageSize({ payload: { itemsPerPage: 2 } }));
       store$.dispatch(
-        new SetProductListingPages({
-          id: TEST_ID,
-          itemCount: 61,
-          sortKeys: [],
-          1: [],
+        setProductListingPages({
+          payload: {
+            id: TEST_ID,
+            itemCount: 61,
+            sortKeys: [],
+            1: [],
+          },
         })
       );
       view = getProductListingView(store$.state, TEST_ID);
@@ -290,13 +298,15 @@ describe('Product Listing Selectors', () => {
     let view: ProductListingView;
 
     beforeEach(() => {
-      store$.dispatch(new SetProductListingPageSize({ itemsPerPage: 2 }));
+      store$.dispatch(setProductListingPageSize({ payload: { itemsPerPage: 2 } }));
       store$.dispatch(
-        new SetProductListingPages({
-          id: TEST_ID,
-          itemCount: 6000,
-          sortKeys: [],
-          1: [],
+        setProductListingPages({
+          payload: {
+            id: TEST_ID,
+            itemCount: 6000,
+            sortKeys: [],
+            1: [],
+          },
         })
       );
       view = getProductListingView(store$.state, TEST_ID);

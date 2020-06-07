@@ -1,4 +1,6 @@
-import { CompareAction, CompareActionTypes } from './compare.actions';
+import { createReducer, on } from '@ngrx/store';
+
+import { addToCompare, removeFromCompare } from './compare.actions';
 
 export interface CompareState {
   products: string[];
@@ -7,23 +9,18 @@ export interface CompareState {
 export const initialState: CompareState = {
   products: [],
 };
+export const compareReducer = createReducer(
+  initialState,
+  on(addToCompare, (state, action) => {
+    const { sku } = action.payload;
+    const products = state.products.includes(sku) ? [...state.products] : [...state.products, sku];
 
-export function compareReducer(state = initialState, action: CompareAction): CompareState {
-  switch (action.type) {
-    case CompareActionTypes.AddToCompare: {
-      const { sku } = action.payload;
-      const products = state.products.includes(sku) ? [...state.products] : [...state.products, sku];
+    return { ...state, products };
+  }),
+  on(removeFromCompare, (state, action) => {
+    const { sku } = action.payload;
+    const products = state.products.filter(current => current !== sku);
 
-      return { ...state, products };
-    }
-
-    case CompareActionTypes.RemoveFromCompare: {
-      const { sku } = action.payload;
-      const products = state.products.filter(current => current !== sku);
-
-      return { ...state, products };
-    }
-  }
-
-  return state;
-}
+    return { ...state, products };
+  })
+);

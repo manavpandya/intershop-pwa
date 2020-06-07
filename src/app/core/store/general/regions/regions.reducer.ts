@@ -1,8 +1,9 @@
 import { EntityState, createEntityAdapter } from '@ngrx/entity';
+import { createReducer, on } from '@ngrx/store';
 
 import { Region } from 'ish-core/models/region/region.model';
 
-import { RegionAction, RegionActionTypes } from './regions.actions';
+import { loadRegions, loadRegionsFail, loadRegionsSuccess } from './regions.actions';
 
 export const regionAdapter = createEntityAdapter<Region>({
   selectId: region => region.id,
@@ -15,32 +16,22 @@ export interface RegionsState extends EntityState<Region> {
 export const initialState: RegionsState = regionAdapter.getInitialState({
   loading: false,
 });
+export const regionsReducer = createReducer(
+  initialState,
+  on(loadRegions, state => ({
+    ...state,
+    loading: true,
+  })),
+  on(loadRegionsFail, state => ({
+    ...state,
+    loading: false,
+  })),
+  on(loadRegionsSuccess, (state, action) => {
+    const { regions } = action.payload;
 
-export function regionsReducer(state = initialState, action: RegionAction): RegionsState {
-  switch (action.type) {
-    case RegionActionTypes.LoadRegions: {
-      return {
-        ...state,
-        loading: true,
-      };
-    }
-
-    case RegionActionTypes.LoadRegionsFail: {
-      return {
-        ...state,
-        loading: false,
-      };
-    }
-
-    case RegionActionTypes.LoadRegionsSuccess: {
-      const { regions } = action.payload;
-
-      return {
-        ...regionAdapter.upsertMany(regions, state),
-        loading: false,
-      };
-    }
-  }
-
-  return state;
-}
+    return {
+      ...regionAdapter.upsertMany(regions, state),
+      loading: false,
+    };
+  })
+);

@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
 import { ShoppingStoreModule } from 'ish-core/store/shopping/shopping-store.module';
 
-import { AddToCompare, RemoveFromCompare, ToggleCompare } from './compare.actions';
+import { addToCompare, removeFromCompare, toggleCompare } from './compare.actions';
 import { CompareEffects } from './compare.effects';
 
 describe('Compare Effects', () => {
@@ -29,8 +29,8 @@ describe('Compare Effects', () => {
     it('should switch to ADD action', () => {
       const sku = '123';
 
-      const action = new ToggleCompare({ sku });
-      const completion = new AddToCompare({ sku });
+      const action = toggleCompare({ payload: { sku } });
+      const completion = addToCompare({ payload: { sku } });
 
       actions$ = hot('-a', { a: action });
       const expected$ = cold('-b', { b: completion });
@@ -40,10 +40,10 @@ describe('Compare Effects', () => {
 
     it('should switch to REMOVE action', () => {
       const sku = '123';
-      store$.dispatch(new AddToCompare({ sku }));
+      store$.dispatch(addToCompare({ payload: { sku } }));
 
-      const action = new ToggleCompare({ sku });
-      const completion = new RemoveFromCompare({ sku });
+      const action = toggleCompare({ payload: { sku } });
+      const completion = removeFromCompare({ payload: { sku } });
 
       actions$ = hot('-a', { a: action });
       const expected$ = cold('-b', { b: completion });

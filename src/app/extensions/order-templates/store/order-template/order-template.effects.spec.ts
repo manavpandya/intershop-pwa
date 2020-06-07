@@ -12,37 +12,36 @@ import { FeatureToggleModule } from 'ish-core/feature-toggle.module';
 import { Customer } from 'ish-core/models/customer/customer.model';
 import { HttpError } from 'ish-core/models/http-error/http-error.model';
 import { AccountStoreModule } from 'ish-core/store/account/account-store.module';
-import { LoginUserSuccess } from 'ish-core/store/account/user';
+import { loginUserSuccess } from 'ish-core/store/account/user';
 import { CoreStoreModule } from 'ish-core/store/core/core-store.module';
-import { DisplaySuccessMessage } from 'ish-core/store/core/messages';
+import { displaySuccessMessage } from 'ish-core/store/core/messages';
 
 import { OrderTemplate } from '../../models/order-template/order-template.model';
 import { OrderTemplateService } from '../../services/order-template/order-template.service';
 import { OrderTemplatesStoreModule } from '../order-templates-store.module';
 
 import {
-  AddProductToNewOrderTemplate,
-  AddProductToOrderTemplate,
-  AddProductToOrderTemplateFail,
-  AddProductToOrderTemplateSuccess,
-  CreateOrderTemplate,
-  CreateOrderTemplateFail,
-  CreateOrderTemplateSuccess,
-  DeleteOrderTemplate,
-  DeleteOrderTemplateFail,
-  DeleteOrderTemplateSuccess,
-  LoadOrderTemplates,
-  LoadOrderTemplatesFail,
-  LoadOrderTemplatesSuccess,
-  MoveItemToOrderTemplate,
-  OrderTemplatesActionTypes,
-  RemoveItemFromOrderTemplate,
-  RemoveItemFromOrderTemplateFail,
-  RemoveItemFromOrderTemplateSuccess,
-  SelectOrderTemplate,
-  UpdateOrderTemplate,
-  UpdateOrderTemplateFail,
-  UpdateOrderTemplateSuccess,
+  addProductToNewOrderTemplate,
+  addProductToOrderTemplate,
+  addProductToOrderTemplateFail,
+  addProductToOrderTemplateSuccess,
+  createOrderTemplate,
+  createOrderTemplateFail,
+  createOrderTemplateSuccess,
+  deleteOrderTemplate,
+  deleteOrderTemplateFail,
+  deleteOrderTemplateSuccess,
+  loadOrderTemplates,
+  loadOrderTemplatesFail,
+  loadOrderTemplatesSuccess,
+  moveItemToOrderTemplate,
+  removeItemFromOrderTemplate,
+  removeItemFromOrderTemplateFail,
+  removeItemFromOrderTemplateSuccess,
+  selectOrderTemplate,
+  updateOrderTemplate,
+  updateOrderTemplateFail,
+  updateOrderTemplateSuccess,
 } from './order-template.actions';
 import { OrderTemplateEffects } from './order-template.effects';
 
@@ -100,12 +99,12 @@ describe('Order Template Effects', () => {
 
   describe('loadOrderTemplate$', () => {
     beforeEach(() => {
-      store$.dispatch(new LoginUserSuccess({ customer }));
+      store$.dispatch(loginUserSuccess({ payload: { customer } }));
       when(orderTemplateServiceMock.getOrderTemplates()).thenReturn(of(orderTemplates));
     });
 
     it('should call the OrderTemplateService for loadOrderTemplate', done => {
-      const action = new LoadOrderTemplates();
+      const action = loadOrderTemplates();
       actions$ = of(action);
 
       effects.loadOrderTemplates$.subscribe(() => {
@@ -115,9 +114,11 @@ describe('Order Template Effects', () => {
     });
 
     it('should map to actions of type LoadOrderTemplatesSuccess', () => {
-      const action = new LoadOrderTemplates();
-      const completion = new LoadOrderTemplatesSuccess({
-        orderTemplates,
+      const action = loadOrderTemplates();
+      const completion = loadOrderTemplatesSuccess({
+        payload: {
+          orderTemplates,
+        },
       });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
@@ -128,9 +129,11 @@ describe('Order Template Effects', () => {
     it('should map failed calls to actions of type LoadOrderTemplateFail', () => {
       const error = { message: 'invalid' } as HttpError;
       when(orderTemplateServiceMock.getOrderTemplates()).thenReturn(throwError(error));
-      const action = new LoadOrderTemplates();
-      const completion = new LoadOrderTemplatesFail({
-        error,
+      const action = loadOrderTemplates();
+      const completion = loadOrderTemplatesFail({
+        payload: {
+          error,
+        },
       });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
@@ -151,12 +154,12 @@ describe('Order Template Effects', () => {
       public: false,
     };
     beforeEach(() => {
-      store$.dispatch(new LoginUserSuccess({ customer }));
+      store$.dispatch(loginUserSuccess({ payload: { customer } }));
       when(orderTemplateServiceMock.createOrderTemplate(anything())).thenReturn(of(orderTemplateData[0]));
     });
 
     it('should call the OrderTemplateService for createOrderTemplate', done => {
-      const action = new CreateOrderTemplate({ orderTemplate: createOrderTemplateData });
+      const action = createOrderTemplate({ payload: { orderTemplate: createOrderTemplateData } });
       actions$ = of(action);
 
       effects.createOrderTemplate$.subscribe(() => {
@@ -166,13 +169,17 @@ describe('Order Template Effects', () => {
     });
 
     it('should map to actions of type CreateOrderTemplateSuccess and SuccessMessage', () => {
-      const action = new CreateOrderTemplate({ orderTemplate: createOrderTemplateData });
-      const completion1 = new CreateOrderTemplateSuccess({
-        orderTemplate: orderTemplateData[0],
+      const action = createOrderTemplate({ payload: { orderTemplate: createOrderTemplateData } });
+      const completion1 = createOrderTemplateSuccess({
+        payload: {
+          orderTemplate: orderTemplateData[0],
+        },
       });
-      const completion2 = new DisplaySuccessMessage({
-        message: 'account.order_template.new_order_template.confirmation',
-        messageParams: { 0: createOrderTemplateData.title },
+      const completion2 = displaySuccessMessage({
+        payload: {
+          message: 'account.order_template.new_order_template.confirmation',
+          messageParams: { 0: createOrderTemplateData.title },
+        },
       });
       actions$ = hot('-a----a----a', { a: action });
       const expected$ = cold('-(cd)-(cd)-(cd)', { c: completion1, d: completion2 });
@@ -182,9 +189,11 @@ describe('Order Template Effects', () => {
     it('should map failed calls to actions of type CreateOrderTemplateFail', () => {
       const error = { message: 'invalid' } as HttpError;
       when(orderTemplateServiceMock.createOrderTemplate(anything())).thenReturn(throwError(error));
-      const action = new CreateOrderTemplate({ orderTemplate: createOrderTemplateData });
-      const completion = new CreateOrderTemplateFail({
-        error,
+      const action = createOrderTemplate({ payload: { orderTemplate: createOrderTemplateData } });
+      const completion = createOrderTemplateFail({
+        payload: {
+          error,
+        },
       });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
@@ -196,13 +205,13 @@ describe('Order Template Effects', () => {
   describe('deleteOrderTemplate$', () => {
     const id = orderTemplates[0].id;
     beforeEach(() => {
-      store$.dispatch(new LoginUserSuccess({ customer }));
-      store$.dispatch(new CreateOrderTemplateSuccess({ orderTemplate: orderTemplates[0] }));
+      store$.dispatch(loginUserSuccess({ payload: { customer } }));
+      store$.dispatch(createOrderTemplateSuccess({ payload: { orderTemplate: orderTemplates[0] } }));
       when(orderTemplateServiceMock.deleteOrderTemplate(anyString())).thenReturn(of(undefined));
     });
 
     it('should call the OrderTemplateService for deleteOrderTemplate', done => {
-      const action = new DeleteOrderTemplate({ orderTemplateId: id });
+      const action = deleteOrderTemplate({ payload: { orderTemplateId: id } });
       actions$ = of(action);
 
       effects.deleteOrderTemplate$.subscribe(() => {
@@ -212,11 +221,13 @@ describe('Order Template Effects', () => {
     });
 
     it('should map to actions of type DeleteOrderTemplateSuccess', () => {
-      const action = new DeleteOrderTemplate({ orderTemplateId: id });
-      const completion1 = new DeleteOrderTemplateSuccess({ orderTemplateId: id });
-      const completion2 = new DisplaySuccessMessage({
-        message: 'account.order_template.delete_order_template.confirmation',
-        messageParams: { 0: orderTemplates[0].title },
+      const action = deleteOrderTemplate({ payload: { orderTemplateId: id } });
+      const completion1 = deleteOrderTemplateSuccess({ payload: { orderTemplateId: id } });
+      const completion2 = displaySuccessMessage({
+        payload: {
+          message: 'account.order_template.delete_order_template.confirmation',
+          messageParams: { 0: orderTemplates[0].title },
+        },
       });
       actions$ = hot('-a----a----a', { a: action });
       const expected$ = cold('-(cd)-(cd)-(cd)', { c: completion1, d: completion2 });
@@ -226,9 +237,11 @@ describe('Order Template Effects', () => {
     it('should map failed calls to actions of type DeleteOrderTemplateFail', () => {
       const error = { message: 'invalid' } as HttpError;
       when(orderTemplateServiceMock.deleteOrderTemplate(anyString())).thenReturn(throwError(error));
-      const action = new DeleteOrderTemplate({ orderTemplateId: id });
-      const completion = new DeleteOrderTemplateFail({
-        error,
+      const action = deleteOrderTemplate({ payload: { orderTemplateId: id } });
+      const completion = deleteOrderTemplateFail({
+        payload: {
+          error,
+        },
       });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
@@ -247,12 +260,12 @@ describe('Order Template Effects', () => {
       },
     ];
     beforeEach(() => {
-      store$.dispatch(new LoginUserSuccess({ customer }));
+      store$.dispatch(loginUserSuccess({ payload: { customer } }));
       when(orderTemplateServiceMock.updateOrderTemplate(anything())).thenReturn(of(orderTemplateDetailData[0]));
     });
 
     it('should call the OrderTemplateService for updateOrderTemplate', done => {
-      const action = new UpdateOrderTemplate({ orderTemplate: orderTemplateDetailData[0] });
+      const action = updateOrderTemplate({ payload: { orderTemplate: orderTemplateDetailData[0] } });
       actions$ = of(action);
 
       effects.updateOrderTemplate$.subscribe(() => {
@@ -262,11 +275,13 @@ describe('Order Template Effects', () => {
     });
 
     it('should map to actions of type UpdateOrderTemplateSuccess', () => {
-      const action = new UpdateOrderTemplate({ orderTemplate: orderTemplateDetailData[0] });
-      const completion1 = new UpdateOrderTemplateSuccess({ orderTemplate: orderTemplateDetailData[0] });
-      const completion2 = new DisplaySuccessMessage({
-        message: 'account.order_templates.edit.confirmation',
-        messageParams: { 0: orderTemplateDetailData[0].title },
+      const action = updateOrderTemplate({ payload: { orderTemplate: orderTemplateDetailData[0] } });
+      const completion1 = updateOrderTemplateSuccess({ payload: { orderTemplate: orderTemplateDetailData[0] } });
+      const completion2 = displaySuccessMessage({
+        payload: {
+          message: 'account.order_templates.edit.confirmation',
+          messageParams: { 0: orderTemplateDetailData[0].title },
+        },
       });
       actions$ = hot('-a----a----a', { a: action });
       const expected$ = cold('-(cd)-(cd)-(cd)', { c: completion1, d: completion2 });
@@ -276,9 +291,11 @@ describe('Order Template Effects', () => {
     it('should map failed calls to actions of type UpdateOrderTemplateFail', () => {
       const error = { message: 'invalid' } as HttpError;
       when(orderTemplateServiceMock.updateOrderTemplate(anything())).thenReturn(throwError(error));
-      const action = new UpdateOrderTemplate({ orderTemplate: orderTemplateDetailData[0] });
-      const completion = new UpdateOrderTemplateFail({
-        error,
+      const action = updateOrderTemplate({ payload: { orderTemplate: orderTemplateDetailData[0] } });
+      const completion = updateOrderTemplateFail({
+        payload: {
+          error,
+        },
       });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
@@ -294,14 +311,14 @@ describe('Order Template Effects', () => {
     };
 
     beforeEach(() => {
-      store$.dispatch(new LoginUserSuccess({ customer }));
+      store$.dispatch(loginUserSuccess({ payload: { customer } }));
       when(orderTemplateServiceMock.addProductToOrderTemplate(anyString(), anyString(), anyNumber())).thenReturn(
         of(orderTemplates[0])
       );
     });
 
     it('should call the OrderTemplateService for addProductToOrderTemplate', done => {
-      const action = new AddProductToOrderTemplate(payload);
+      const action = addProductToOrderTemplate({ payload });
       actions$ = of(action);
 
       effects.addProductToOrderTemplate$.subscribe(() => {
@@ -313,8 +330,8 @@ describe('Order Template Effects', () => {
     });
 
     it('should map to actions of type AddProductToOrderTemplateSuccess', () => {
-      const action = new AddProductToOrderTemplate(payload);
-      const completion = new AddProductToOrderTemplateSuccess({ orderTemplate: orderTemplates[0] });
+      const action = addProductToOrderTemplate({ payload });
+      const completion = addProductToOrderTemplateSuccess({ payload: { orderTemplate: orderTemplates[0] } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
       expect(effects.addProductToOrderTemplate$).toBeObservable(expected$);
@@ -325,9 +342,11 @@ describe('Order Template Effects', () => {
       when(orderTemplateServiceMock.addProductToOrderTemplate(anyString(), anyString(), anything())).thenReturn(
         throwError(error)
       );
-      const action = new AddProductToOrderTemplate(payload);
-      const completion = new AddProductToOrderTemplateFail({
-        error,
+      const action = addProductToOrderTemplate({ payload });
+      const completion = addProductToOrderTemplateFail({
+        payload: {
+          error,
+        },
       });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
@@ -348,14 +367,16 @@ describe('Order Template Effects', () => {
       public: false,
     };
     beforeEach(() => {
-      store$.dispatch(new LoginUserSuccess({ customer }));
+      store$.dispatch(loginUserSuccess({ payload: { customer } }));
       when(orderTemplateServiceMock.createOrderTemplate(anything())).thenReturn(of(orderTemplate));
     });
     it('should map to actions of types CreateOrderTemplateSuccess and AddProductToOrderTemplate', () => {
-      const action = new AddProductToNewOrderTemplate(payload);
-      const completion1 = new CreateOrderTemplateSuccess({ orderTemplate });
-      const completion2 = new AddProductToOrderTemplate({ orderTemplateId: orderTemplate.id, sku: payload.sku });
-      const completion3 = new SelectOrderTemplate({ id: orderTemplate.id });
+      const action = addProductToNewOrderTemplate({ payload });
+      const completion1 = createOrderTemplateSuccess({ payload: { orderTemplate } });
+      const completion2 = addProductToOrderTemplate({
+        payload: { orderTemplateId: orderTemplate.id, sku: payload.sku },
+      });
+      const completion3 = selectOrderTemplate({ payload: { id: orderTemplate.id } });
       actions$ = hot('-a-----a-----a', { a: action });
       const expected$ = cold('-(bcd)-(bcd)-(bcd)', { b: completion1, c: completion2, d: completion3 });
       expect(effects.addProductToNewOrderTemplate$).toBeObservable(expected$);
@@ -363,9 +384,11 @@ describe('Order Template Effects', () => {
     it('should map failed calls to actions of type CreateOrderTemplateFail', () => {
       const error = { message: 'invalid' } as HttpError;
       when(orderTemplateServiceMock.createOrderTemplate(anything())).thenReturn(throwError(error));
-      const action = new AddProductToNewOrderTemplate(payload);
-      const completion = new CreateOrderTemplateFail({
-        error,
+      const action = addProductToNewOrderTemplate({ payload });
+      const completion = createOrderTemplateFail({
+        payload: {
+          error,
+        },
       });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
@@ -390,34 +413,42 @@ describe('Order Template Effects', () => {
       public: false,
     };
     beforeEach(() => {
-      store$.dispatch(new LoginUserSuccess({ customer }));
+      store$.dispatch(loginUserSuccess({ payload: { customer } }));
       when(orderTemplateServiceMock.createOrderTemplate(anything())).thenReturn(of(orderTemplate));
     });
     it('should map to actions of types AddProductToNewOrderTemplate and RemoveItemFromOrderTemplate if there is no target id given', () => {
-      const action = new MoveItemToOrderTemplate(payload1);
-      const completion1 = new AddProductToNewOrderTemplate({
-        title: payload1.target.title,
-        sku: payload1.target.sku,
-        quantity: payload1.target.quantity,
+      const action = moveItemToOrderTemplate({ payload: payload1 });
+      const completion1 = addProductToNewOrderTemplate({
+        payload: {
+          title: payload1.target.title,
+          sku: payload1.target.sku,
+          quantity: payload1.target.quantity,
+        },
       });
-      const completion2 = new RemoveItemFromOrderTemplate({
-        orderTemplateId: payload1.source.id,
-        sku: payload1.target.sku,
+      const completion2 = removeItemFromOrderTemplate({
+        payload: {
+          orderTemplateId: payload1.source.id,
+          sku: payload1.target.sku,
+        },
       });
       actions$ = hot('-a----a----a', { a: action });
       const expected$ = cold('-(bc)-(bc)-(bc)', { b: completion1, c: completion2 });
       expect(effects.moveItemToOrderTemplate$).toBeObservable(expected$);
     });
     it('should map to actions of types AddProductToOrderTemplate and RemoveItemFromOrderTemplate if there is a target id given', () => {
-      const action = new MoveItemToOrderTemplate(payload2);
-      const completion1 = new AddProductToOrderTemplate({
-        orderTemplateId: orderTemplate.id,
-        sku: payload1.target.sku,
-        quantity: payload1.target.quantity,
+      const action = moveItemToOrderTemplate({ payload: payload2 });
+      const completion1 = addProductToOrderTemplate({
+        payload: {
+          orderTemplateId: orderTemplate.id,
+          sku: payload1.target.sku,
+          quantity: payload1.target.quantity,
+        },
       });
-      const completion2 = new RemoveItemFromOrderTemplate({
-        orderTemplateId: payload1.source.id,
-        sku: payload1.target.sku,
+      const completion2 = removeItemFromOrderTemplate({
+        payload: {
+          orderTemplateId: payload1.source.id,
+          sku: payload1.target.sku,
+        },
       });
       actions$ = hot('-a----a----a', { a: action });
       const expected$ = cold('-(bc)-(bc)-(bc)', { b: completion1, c: completion2 });
@@ -438,14 +469,14 @@ describe('Order Template Effects', () => {
       public: false,
     };
     beforeEach(() => {
-      store$.dispatch(new LoginUserSuccess({ customer }));
+      store$.dispatch(loginUserSuccess({ payload: { customer } }));
       when(orderTemplateServiceMock.removeProductFromOrderTemplate(anyString(), anyString())).thenReturn(
         of(orderTemplate)
       );
     });
 
     it('should call the OrderTemplateService for removeProductFromOrderTemplate', done => {
-      const action = new RemoveItemFromOrderTemplate(payload);
+      const action = removeItemFromOrderTemplate({ payload });
       actions$ = of(action);
 
       effects.removeProductFromOrderTemplate$.subscribe(() => {
@@ -454,8 +485,8 @@ describe('Order Template Effects', () => {
       });
     });
     it('should map to actions of type RemoveItemFromOrderTemplateSuccess', () => {
-      const action = new RemoveItemFromOrderTemplate(payload);
-      const completion = new RemoveItemFromOrderTemplateSuccess({ orderTemplate });
+      const action = removeItemFromOrderTemplate({ payload });
+      const completion = removeItemFromOrderTemplateSuccess({ payload: { orderTemplate } });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
       expect(effects.removeProductFromOrderTemplate$).toBeObservable(expected$);
@@ -465,9 +496,11 @@ describe('Order Template Effects', () => {
       when(orderTemplateServiceMock.removeProductFromOrderTemplate(anyString(), anyString())).thenReturn(
         throwError(error)
       );
-      const action = new RemoveItemFromOrderTemplate(payload);
-      const completion = new RemoveItemFromOrderTemplateFail({
-        error,
+      const action = removeItemFromOrderTemplate({ payload });
+      const completion = removeItemFromOrderTemplateFail({
+        payload: {
+          error,
+        },
       });
       actions$ = hot('-a-a-a', { a: action });
       const expected$ = cold('-c-c-c', { c: completion });
@@ -496,18 +529,18 @@ describe('Order Template Effects', () => {
     });
     it('should call OrderTemplatesService after login action was dispatched', done => {
       effects.loadOrderTemplatesAfterLogin$.subscribe(action => {
-        expect(action.type).toEqual(OrderTemplatesActionTypes.LoadOrderTemplates);
+        expect(action.type).toEqual(loadOrderTemplates.type);
         done();
       });
 
-      store$.dispatch(new LoginUserSuccess({ customer }));
+      store$.dispatch(loginUserSuccess({ payload: { customer } }));
     });
   });
 
   describe('setOrderTemplateBreadcrumb$', () => {
     beforeEach(() => {
-      store$.dispatch(new LoadOrderTemplatesSuccess({ orderTemplates }));
-      store$.dispatch(new SelectOrderTemplate({ id: orderTemplates[0].id }));
+      store$.dispatch(loadOrderTemplatesSuccess({ payload: { orderTemplates } }));
+      store$.dispatch(selectOrderTemplate({ payload: { id: orderTemplates[0].id } }));
     });
 
     it('should set the breadcrumb of the selected Order Template', done => {

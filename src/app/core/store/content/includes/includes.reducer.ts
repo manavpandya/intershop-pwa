@@ -1,8 +1,9 @@
 import { EntityState, createEntityAdapter } from '@ngrx/entity';
+import { createReducer, on } from '@ngrx/store';
 
 import { ContentPageletEntryPoint } from 'ish-core/models/content-pagelet-entry-point/content-pagelet-entry-point.model';
 
-import { IncludesAction, IncludesActionTypes } from './includes.actions';
+import { loadContentInclude, loadContentIncludeFail, loadContentIncludeSuccess } from './includes.actions';
 
 export const includesAdapter = createEntityAdapter<ContentPageletEntryPoint>({
   selectId: contentInclude => contentInclude.id,
@@ -15,32 +16,22 @@ export interface IncludesState extends EntityState<ContentPageletEntryPoint> {
 export const initialState: IncludesState = includesAdapter.getInitialState({
   loading: false,
 });
+export const includesReducer = createReducer(
+  initialState,
+  on(loadContentInclude, state => ({
+    ...state,
+    loading: true,
+  })),
+  on(loadContentIncludeFail, state => ({
+    ...state,
+    loading: false,
+  })),
+  on(loadContentIncludeSuccess, (state, action) => {
+    const { include } = action.payload;
 
-export function includesReducer(state = initialState, action: IncludesAction): IncludesState {
-  switch (action.type) {
-    case IncludesActionTypes.LoadContentInclude: {
-      return {
-        ...state,
-        loading: true,
-      };
-    }
-
-    case IncludesActionTypes.LoadContentIncludeFail: {
-      return {
-        ...state,
-        loading: false,
-      };
-    }
-
-    case IncludesActionTypes.LoadContentIncludeSuccess: {
-      const { include } = action.payload;
-
-      return {
-        ...includesAdapter.upsertOne(include, state),
-        loading: false,
-      };
-    }
-  }
-
-  return state;
-}
+    return {
+      ...includesAdapter.upsertOne(include, state),
+      loading: false,
+    };
+  })
+);
